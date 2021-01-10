@@ -165,11 +165,10 @@ def p_expression_group(p):
 
 def p_error(p):
     print(f'Syntax error at {p.value!r}')
-    code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+    exit(1)
 
 import ply.yacc as yacc
 yacc.yacc()
-
 
 import cmd
 
@@ -179,6 +178,8 @@ class CmdParse(cmd.Cmd):
     def do_list(self, line):
         print(self.commands)
     def default(self, line):
+        if line == 'EOF':
+            exit(0)
         yacc.parse(line)
         self.commands.append(line)
     def do_exit(self, line):
