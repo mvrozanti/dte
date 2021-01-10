@@ -110,7 +110,7 @@ precedence = (
 
 days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 names = { 
-            'dow': lambda t: days[t.weekday() ]
+            'dow': lambda t: days[t.weekday()]
         }
 
 def p_statement_assign(p):
@@ -170,9 +170,17 @@ def p_error(p):
 import ply.yacc as yacc
 yacc.yacc()
 
-while True:
-    try:
-        s = input()
-    except EOFError:
-        break
-    yacc.parse(s)
+
+import cmd
+
+class CmdParse(cmd.Cmd):
+    prompt = ''
+    commands = []
+    def do_list(self, line):
+        print(self.commands)
+    def default(self, line):
+        yacc.parse(line)
+        self.commands.append(line)
+    def do_exit(self, line):
+        return True
+CmdParse().cmdloop()
