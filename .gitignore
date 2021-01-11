@@ -1,3 +1,6 @@
 __pycache__
-parser.out
-parsetab.py
+*/**/parser.out
+*/**/parsetab.py
+dte.egg-info/*
+dist/*
+init

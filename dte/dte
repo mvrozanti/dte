@@ -1,0 +1,474 @@
+#!/usr/bin/env python
+from collections import OrderedDict
+from datetime import datetime, date, timedelta
+from dateutil.relativedelta import relativedelta
+from ply.lex import TOKEN
+import calendar
+import code
+import re
+import sys
+import time
+import types
+
+replace = lambda replacee,replacer,string: re.sub(replacee, replacer, string)
+
+days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+days_abbrev = [d[:3] for d in days]
+
+tokens = (
+    'PLUS','MINUS','EQUALS',
+    'LPAREN','RPAREN',
+    'TIME_INVALID',
+    'TIME_MS', 'TIME_HM', 'TIME_HMS',
+    'YD', # yesterday
+    'N',  # now
+    'T',  # today
+    'TM', # tomorrow
+    'UNIT',
+    'NAME',
+    'DELTA', 
+    'DATE', 
+    'TIMESTAMP', 
+    'WEEKDAY', 
+    'PERIOD', 
+    'SEMICOLON', 
+    'DATETIME', 
+    )
+
+# Tokens
+
+t_SEMICOLON = r';'
+t_PERIOD    = r'\.'
+t_PLUS      = r'\+'
+t_MINUS     = r'-'
+t_EQUALS    = r'='
+t_LPAREN    = r'\('
+t_RPAREN    = r'\)'
+
+
+# def t_YD(t):
+#     r'(?i)(yesterday|yd)'
+#     t.value = (datetime.today() - timedelta(days=1)).date()
+#     return t
+#
+# def t_TM(t):
+#     r'(?i)(tomorrow|tm)'
+#     t.value = (datetime.today() + timedelta(days=1)).date()
+#     return t
+#
+# def t_T(t):
+#     r'(?i)t(oday)?'
+#     t.value = date.today()
+#     return t
+#
+# def t_N(t):
+#     r'(?i)n(ow)?'
+#     t.value = datetime.now()
+#     return t
+
+def t_NAME(t):
+    r'[a-zA-Z_][a-zA-Z0-9_]*'
+    return t
+
+def get_closest_week_day(week_day):
+    counter_next = 0
+    counter_prev = 0
+    next_date = datetime.now()
+    for _ in range(7):
+        next_date += timedelta(days=1)
+        counter_next += 1
+        if days[next_date.weekday()].lower() == week_day.lower():
+            break
+    prev_date = datetime.now()
+    for _ in range(7):
+        prev_date += timedelta(days=-1)
+        counter_prev += 1
+        if days[prev_date.weekday()].lower() == week_day.lower():
+            break
+    if counter_next < counter_prev:
+        return next_date.date()
+    return prev_date.date()
+
+unit_map = {
+        's': 'seconds',
+        'S': 'seconds',
+        'M': 'minutes',
+        'h': 'hours',
+        'H': 'hours',
+        'd': 'days',
+        'D': 'days',
+        'w': 'weeks',
+        'W': 'weeks',
+        'm': 'months',
+        'y': 'years',
+        'Y': 'years',
+        }
+
+def t_TIME_HMS(t):
+    r'(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])'
+    t.value = datetime.strptime(t.value, '%H:%M:%S')
+    return t
+
+def parse_units(units_vals):
+    parsed = timedelta()
+    for unit,long_name in unit_map.items():
+        if unit in units_vals:
+            if unit.lower() == 'y':
+                parsed += (datetime.now()+relativedelta(years=units_vals[unit])) - datetime.now()
+            elif unit == 'm':
+                parsed += (datetime.now()+relativedelta(months=units_vals[unit])) - datetime.now()
+            else:
+                parsed += timedelta(**{long_name: units_vals[unit]})
+    return parsed
+
+UNITS_STR = 'sSMhHdDwWmyY'
+
+DELTA_TOKEN = r'((?:\d*[.])?\d+)['+UNITS_STR+'](((?:\d*[.])?\d+)(['+UNITS_STR+']|$))*'
+@TOKEN(DELTA_TOKEN)
+def t_DELTA(t):
+    units_vals = OrderedDict()
+    matches = re.findall('((?:\d*[.])?\d+)(['+UNITS_STR+']|$)', t.value)
+    for v,u in matches:
+        units_vals.update({ u if u in 'mM' else u.lower(): float(v) if v else 1 })
+    t.value = parse_units(units_vals)
+    if '' in units_vals:
+        u,_ = list(units_vals.items())[list(units_vals.keys()).index('')-1]
+        next_unit = UNITS_STR[UNITS_STR.index(u)-1]
+        if next_unit.lower() == u.lower():
+            next_unit = UNITS_STR[UNITS_STR.index(u)-2]
+        le_add = parse_units({next_unit: units_vals['']}) # get successor delta
+        t.value += le_add
+    return t
+
+def t_DATE(t):
+    r'(\d+)\D(\d+)\D(\d+)'
+    y,m,d = replace(r'\D', '-', t.value).split('-')
+    t.value = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d')
+    return t
+
+def t_TIMESTAMP(t):
+    r'\d+'
+    t.value = datetime.fromtimestamp(int(t.value))
+    return t
+
+t_ignore = ' \t'
+t_ignore_COMMENT = r'\#.*'
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += t.value.count('\n')
+
+def t_error(t):
+    print(f'Illegal character {t.value[0]!r}')
+    t.lexer.skip(1)
+
+import ply.lex as lex
+lex.lex(debug=False)
+
+def wait(t):
+    if isinstance(t, datetime):
+        now = datetime.now()
+        delta = t - now
+    elif isinstance(t, timedelta):
+        delta = t
+    else:
+        raise SyntaxError('wait accepts a time point or time delta only')
+    if delta > timedelta(0):
+        time.sleep(delta.total_seconds())
+
+def last_wd(t):
+    prev_date = datetime.now()
+    for _ in range(7):
+        prev_date += timedelta(days=-1)
+        if days[prev_date.weekday()].lower() == str(t).lower():
+            break
+    return prev_date.date()
+
+def next_wd(t):
+    next_date = datetime.now()
+    for _ in range(7):
+        next_date += timedelta(days=1)
+        if days[next_date.weekday()].lower() == str(t).lower():
+            break
+    return next_date.date()
+
+def dow(t):
+    if type(t) == date or type(t) == datetime:
+        return days[t.weekday()]
+    elif type(t) == timedelta:
+        return days[(datetime.now()+t).weekday()]
+    else:
+        raise SyntaxError('can\'t get day of week of object of type' + str(type(t)))
+
+class Weekday:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+names = {
+            'day'       : lambda t                           : t.day,
+            'month'     : lambda t                           : t.month,
+            'year'      : lambda t                           : t.year,
+            'hour'      : lambda t                           : t.hour,
+            'minute'    : lambda t                           : t.minute,
+            'second'    : lambda t                           : t.second,
+
+            's'         : lambda                             : datetime.now().second,
+            'S'         : lambda                             : datetime.now().second,
+            'M'         : lambda                             : datetime.now().minute,
+            'h'         : lambda                             : datetime.now().hour,
+            'H'         : lambda                             : datetime.now().hour,
+            'd'         : lambda                             : datetime.now().day,
+            'D'         : lambda                             : datetime.now().day,
+            'm'         : lambda                             : datetime.now().month,
+            'y'         : lambda                             : datetime.now().year,
+            'Y'         : lambda                             : datetime.now().year,
+
+            'yd'        : lambda                             : datetime.today()-timedelta(days=-1),
+            'YD'        : lambda                             : datetime.today()-timedelta(days=-1),
+            't'         : lambda                             : datetime.today().date(),
+            'T'         : lambda                             : datetime.today().date(), 
+            'today'     : lambda                             : datetime.today().date(), 
+            'TODAY'     : lambda                             : datetime.today().date(), 
+
+            'monday'    : Weekday('monday'),
+            'MONDAY'    : Weekday('MONDAY'),
+            'Monday'    : Weekday('monday'),
+            'tuesday'   : Weekday('tuesday'),
+            'TUESDAY'   : Weekday('TUESDAY'),
+            'Tuesday'   : Weekday('Tuesday'),
+            'wednesday' : Weekday('wednesday'),
+            'WEDNESDAY' : Weekday('WEDNESDAY'),
+            'Wednesday' : Weekday('Wednesday'),
+            'thursday'  : Weekday('thursday'),
+            'THURSDAY'  : Weekday('THURSDAY'),
+            'Thursday'  : Weekday('Thursday'),
+            'friday'    : Weekday('friday'),
+            'FRIDAY'    : Weekday('FRIDAY'),
+            'Friday'    : Weekday('Friday'),
+            'saturday'  : Weekday('saturday'),
+            'SATURDAY'  : Weekday('SATURDAY'),
+            'Saturday'  : Weekday('Saturday'),
+            'sunday'    : Weekday('sunday'),
+            'SUNDAY'    : Weekday('SUNDAY'),
+            'Sunday'    : Weekday('Sunday'),
+
+            # 'monday'    : get_closest_week_day('monday'),
+            # 'Monday'    : get_closest_week_day('Monday'),
+            # 'tuesday'   : get_closest_week_day('tuesday'),
+            # 'Tuesday'   : get_closest_week_day('Tuesday'),
+            # 'wednesday' : get_closest_week_day('wednesday'),
+            # 'Wednesday' : get_closest_week_day('Wednesday'),
+            # 'thursday'  : get_closest_week_day('thursday'),
+            # 'Thursday'  : get_closest_week_day('Thursday'),
+            # 'friday'    : get_closest_week_day('friday'),
+            # 'Friday'    : get_closest_week_day('Friday'),
+            # 'saturday'  : get_closest_week_day('sunday'),
+            # 'Saturday'  : get_closest_week_day('Saturday'),
+            # 'sunday'    : get_closest_week_day('sunday'),
+            # 'Sunday'    : get_closest_week_day('sunday'),
+
+            'wait'      : lambda t                           : wait(t),
+            'last'      : lambda t                           : last_wd(t),
+            'next'      : lambda t                           : next_wd(t),
+            'dow'       : lambda t                           : dow(t),
+        }
+
+precedence = (
+    ('right',
+        'UMINUS',
+
+        ),
+    ('left',
+        'PLUS',
+        'MINUS', 
+        'NAME', 
+
+        ),
+    )
+
+def p_statements(p):
+    'statement : statement SEMICOLON statement'
+    pass
+
+def p_statement_assign(p):
+    'statement : NAME EQUALS expression'
+    names[p[1]] = p[3]
+
+# def p_expression_comparison(p):
+#     'expression : expression EQUALS EQUALS expression'
+#     p[0] = p[1] == p[4]
+
+def normalize(t):
+    if type(t) == datetime and \
+            t.hour == 0 and     \
+            t.minute == 0 and    \
+            t.second == 0:        \
+        t = t.date()
+    return t
+
+def p_statement_expr(p):
+    'statement : expression'
+    if type(p[1]) is Weekday:
+        p[1] = get_closest_week_day(str(p[1]))
+    if p[1] is not None:
+        print(normalize(p[1]))
+        names['_'] = p[1]
+
+def p_expression_binop(p):
+    '''expression : expression PLUS expression
+                  | expression MINUS expression'''
+    if isinstance(p[1], datetime) and \
+            isinstance(p[3], int):
+        raise SyntaxError('missing time unit')
+
+    if (type(p[1]) is date and type(p[3]) is date) or\
+            (type(p[1]) is date and type(p[3]) is datetime) or\
+                (type(p[1]) is datetime and type(p[3]) is date):
+                        raise SyntaxError(f"Can't do {p[2]} operation on two time points")
+
+    if p[1] is None or p[3] is None:
+        raise SyntaxError(f'in {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
+
+    if type(p[1]) == Weekday:
+        p[1] = get_closest_week_day(str(p[1]))
+    if type(p[3]) == Weekday:
+        p[3] = get_closest_week_day(str(p[3]))
+    if   p[2] == '+': 
+        p[0] = p[1] + p[3]
+    elif p[2] == '-': 
+        p[0] = p[1] - p[3]
+
+def p_expression_funcall(p):
+    'expression : NAME expression'
+    try:
+        p[0] = names[p[1].lower()](p[2])
+    except:
+        raise SyntaxError("Undefined name '%s'" % p[1])
+
+def p_expression_generic(p):
+    '''expression : TIME_MS 
+                  | TIME_HM
+                  | TIME_HMS
+                  | TIMESTAMP
+                  | DATE
+                  | YD
+                  | TM
+                  | N
+                  | DELTA
+                  | T
+                  '''
+    p[0] = p[1]
+
+def p_expression_name(p):
+    'expression : NAME'
+    try:
+        p[0] = names[p[1]]
+        if(type(p[0]) is types.LambdaType):
+            p[0] = p[0]()
+    except LookupError:
+        try:
+            p[0] = names[p[3]](p[1])
+        except LookupError:
+            print("Undefined name '%s'" % p[1])
+            p[0] = 0
+
+def p_expression_get_attribute(p):
+    'expression : expression PERIOD NAME'
+    if p[3] is None:
+        raise SyntaxError
+    p[0] = names[p[3]](p[1])
+
+def p_expression_invalid_time(p):
+    'expression : TIME_INVALID'
+
+def p_expression_group(p):
+    'expression : LPAREN expression RPAREN'
+    p[0] = p[2]
+
+def p_expression_uminus(p):
+    'expression : MINUS expression %prec UMINUS'
+    p[0] = -p[2]
+
+
+import ply.yacc as yacc
+yacc.yacc()
+
+def interactive():
+    import cmd
+    class CmdParse(cmd.Cmd):
+        prompt = ''
+        commands = []
+        def default(self, line):
+            if line == 'EOF':
+                exit(0)
+            yacc.parse(line)
+            self.commands.append(line)
+        def do_help(self, line):
+            print('''
+OBJECTS:
+
+    DELTA:  
+
+            a timedelta object can be interpreted as 
+            sequence consisting of a number followed 
+            by a time unit in ISO format, with case
+            input relaxed except for differentiating
+            months and minutes:
+
+                1D+1d
+                3h+3m
+                -2M2s
+                10Y33s
+
+    POINT:
+
+            a datetime object that represents a
+            point in time. Can be interpreted 
+            in various forms such as follows:
+
+                2020/12/31
+                22h:22M
+                2020/12/31 22:22
+                2020/12/31 22:22:22
+
+    POINT ATTRIBUTES:
+            
+            a point in time has specific parts that
+            can be extracted as such:
+
+                2020/12/31.dow # as in, day of week
+
+VARIABLES:
+
+            there are three built-in variables:
+
+            T  - today
+            YD - yesterday, based on today
+            N  - now, which approximates T but also 
+                 includes timezone info
+
+            but you can also assign objects to a 
+            named variable, like so:
+                foo=1d
+                bar=YD
+
+
+FUNCTIONS: 
+
+    wait DELTA    - sleeps for the duration
+    next WEEKDAY  - returns the date for the next weekday
+    last WEEKDAY  - returns the date for the last weekday
+    last WEEKDAY  - returns the date for the last weekday
+                    ''')
+        def do_exit(self, line):
+            return True
+    CmdParse().cmdloop()
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        yacc.parse(' '.join(sys.argv[1:]))
+    else:
+        interactive()
