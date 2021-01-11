@@ -75,7 +75,7 @@ def t_DELTA(t):
     r'((\d+)([smhdSMHD]))+'
     units_vals = { 
             u.lower():int(v) if v else 1 \
-                    for v,u in re.findall('(\d+)([smhdSMHD])', t.value)
+                    for v,u in re.findall(r'(\d+)([smhdSMHD])', t.value)
             }
     t.value = timedelta()
     if 's' in units_vals:

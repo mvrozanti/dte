@@ -1,4 +1,5 @@
 #!/usr/bin/env -S python -m pytest 
+import re
 from mtc import *
 import sys
 from io import StringIO
@@ -6,7 +7,9 @@ import code
 import unittest
 
 test_expectancy = {
-        'T-10d' : lambda r: len(r) == 26,
+        'T-10d'      : lambda r: len(r[0]) == 26,
+        'T.dow'      : lambda r: r[0] in days,
+        '(T-1d).dow' : lambda r: r[0] in days,
         }
 
 class Capturing(list):
@@ -22,7 +25,7 @@ class Capturing(list):
 def parse(test):
     with Capturing() as output:
         yacc.parse(test)
-    return output[0]
+    return output
 
 class Tester(unittest.TestCase):
 
