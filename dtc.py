@@ -2,10 +2,9 @@
 DEBUG = 1
 import re
 import code
-from datetime import datetime
-from datetime import date
-from datetime import timedelta
-import traceback
+from datetime import datetime, date, timedelta
+import time
+from ply.lex import TOKEN
 
 replace = lambda replacee,replacer,string: re.sub(replacee, replacer, string)
 
@@ -18,6 +17,7 @@ tokens = (
     'TIME_HMS',
     'N', # now
     'T', # today
+    'YD', # yesterday
     'DELTA', 
     'DATE', 
     'PERIOD', 
@@ -35,6 +35,11 @@ t_LPAREN    = r'\('
 t_RPAREN    = r'\)'
 
 t_NAME      = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
+def t_YD(t):
+    r'[yY][dD]'
+    t.value = datetime.today() - timedelta(days=1)
+    return t
 
 def t_T(t):
     r'[tT]'
@@ -62,7 +67,7 @@ def t_TIME_MS(t):
     return t
 
 def t_TIME_HM(t):
-    r'(2[0-4]|[01][0-9])[hH]:(60|[0-5][0-9])[mM]'
+    r'(2[0-3]|[01][0-9])[hH]:([0-5][0-9])[mM]'
     t.value = datetime.strptime(replace('h|m', '', t.value), '%H:%M')
     return t
 
@@ -71,11 +76,12 @@ def t_DATE(t):
     t.value = datetime.strptime(replace(r'\D', '-', t), '%Y-%M-%D')
     return t
 
+DELTA_TOKEN = r'((\d+(?:\.\d+)?)([smhdSMHD]))+'
+@TOKEN(DELTA_TOKEN)
 def t_DELTA(t):
-    r'((\d+)([smhdSMHD]))+'
     units_vals = { 
-            u.lower():int(v) if v else 1 \
-                    for v,u in re.findall(r'(\d+)([smhdSMHD])', t.value)
+            u.lower():float(v) if v else 1 \
+                    for v,u in re.findall(DELTA_TOKEN[1:-2], t.value)
             }
     t.value = timedelta()
     if 's' in units_vals:
@@ -122,8 +128,27 @@ precedence = (
 
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 days_abbrev = [d[:3] for d in days]
-names = { 
-            'dow': lambda t: days[t.weekday()]
+
+def wait(t):
+    if isinstance(t, datetime):
+        now = datetime.now()
+        delta = t - now
+    elif isinstance(t, timedelta):
+        delta = t
+    else:
+        raise SyntaxError("wait accepts datetime or timedelta only")
+    if delta > timedelta(0):
+        time.sleep(delta.total_seconds())
+
+names = {
+            'dow'    : lambda t: days[t.weekday()],
+            'day'    : lambda t: t.day,
+            'month'  : lambda t: t.month,
+            'year'   : lambda t: t.year,
+            'hour'   : lambda t: t.hour,
+            'minute' : lambda t: t.minute,
+            'second' : lambda t: t.second,
+            'wait'   : lambda t: wait(t),
         }
 
 def p_statement_assign(p):
@@ -161,6 +186,7 @@ def p_expression_datetime(p):
                   | TIME_HM
                   | TIME_HMS
                   | DATE
+                  | YD
                   | N
                   | DELTA
                   | T
@@ -190,9 +216,9 @@ def p_expression_get_attribute(p):
         raise SyntaxError
     p[0] = names[p[3]](p[1])
 
-# def p_expression_funcall(p):
-#     'expression : NAME expression'
-#     p[0] = names[p[1].lower()](p[2])
+def p_expression_funcall(p):
+    'expression : NAME LPAREN expression RPAREN'
+    p[0] = names[p[1].lower()](p[3])
 
 def p_expression_invalid_time(p):
     'expression : TIME_INVALID'
@@ -201,24 +227,11 @@ def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
     p[0] = p[2]
 
-# def p_error(p):
-#     print(f'Syntax error at {p.value!r}')
-    # traceback.print_stack()
-    # code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
-
 import ply.yacc as yacc
 yacc.yacc()
 
-import cmd
-
 if __name__ == '__main__':
-    # while True:
-    #     try:
-    #         s = input()
-    #     except EOFError:
-    #         break
-    #     yacc.parse(s)
-
+    import cmd
     class CmdParse(cmd.Cmd):
         prompt = ''
         commands = []
