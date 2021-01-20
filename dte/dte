@@ -25,6 +25,7 @@ tokens = (
     'T',  # today
     'TM', # tomorrow
     'UNIT',
+    'GT', 'GE', 'LT', 'LE',
     'NAME',
     'DELTA', 
     'DATE', 
@@ -44,27 +45,11 @@ t_MINUS     = r'-'
 t_EQUALS    = r'='
 t_LPAREN    = r'\('
 t_RPAREN    = r'\)'
+t_GT        = r'>'
+t_GE        = r'>='
+t_LT        = r'<'
+t_LE        = r'<='
 
-
-# def t_YD(t):
-#     r'(?i)(yesterday|yd)'
-#     t.value = (datetime.today() - timedelta(days=1)).date()
-#     return t
-#
-# def t_TM(t):
-#     r'(?i)(tomorrow|tm)'
-#     t.value = (datetime.today() + timedelta(days=1)).date()
-#     return t
-#
-# def t_T(t):
-#     r'(?i)t(oday)?'
-#     t.value = date.today()
-#     return t
-#
-# def t_N(t):
-#     r'(?i)n(ow)?'
-#     t.value = datetime.now()
-#     return t
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -104,6 +89,12 @@ unit_map = {
         'Y': 'years',
         }
 
+def t_TIME_INVALID(t):
+    r'(2[0-3]|[01][0-9]):([0-5][0-9])'
+    first, second = t.value.split(':')
+    raise SyntaxError(f'Did you mean {first}h{second}M or {first}M{second}s?')
+    return t
+
 def t_TIME_HMS(t):
     r'(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])'
     t.value = datetime.strptime(t.value, '%H:%M:%S')
@@ -122,12 +113,12 @@ def parse_units(units_vals):
     return parsed
 
 UNITS_STR = 'sSMhHdDwWmyY'
-
-DELTA_TOKEN = r'((?:\d*[.])?\d+)['+UNITS_STR+'](((?:\d*[.])?\d+)(['+UNITS_STR+']|$))*'
+FLOATING_POINT = r'((?:\d*[.])?\d+)'
+DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']|$))*'
 @TOKEN(DELTA_TOKEN)
 def t_DELTA(t):
     units_vals = OrderedDict()
-    matches = re.findall('((?:\d*[.])?\d+)(['+UNITS_STR+']|$)', t.value)
+    matches = re.findall(FLOATING_POINT + '(['+UNITS_STR+']|$)', t.value)
     for v,u in matches:
         units_vals.update({ u if u in 'mM' else u.lower(): float(v) if v else 1 })
     t.value = parse_units(units_vals)
@@ -255,25 +246,11 @@ names = {
             'SUNDAY'    : Weekday('SUNDAY'),
             'Sunday'    : Weekday('Sunday'),
 
-            # 'monday'    : get_closest_week_day('monday'),
-            # 'Monday'    : get_closest_week_day('Monday'),
-            # 'tuesday'   : get_closest_week_day('tuesday'),
-            # 'Tuesday'   : get_closest_week_day('Tuesday'),
-            # 'wednesday' : get_closest_week_day('wednesday'),
-            # 'Wednesday' : get_closest_week_day('Wednesday'),
-            # 'thursday'  : get_closest_week_day('thursday'),
-            # 'Thursday'  : get_closest_week_day('Thursday'),
-            # 'friday'    : get_closest_week_day('friday'),
-            # 'Friday'    : get_closest_week_day('Friday'),
-            # 'saturday'  : get_closest_week_day('sunday'),
-            # 'Saturday'  : get_closest_week_day('Saturday'),
-            # 'sunday'    : get_closest_week_day('sunday'),
-            # 'Sunday'    : get_closest_week_day('sunday'),
-
             'wait'      : lambda t                           : wait(t),
             'last'      : lambda t                           : last_wd(t),
             'next'      : lambda t                           : next_wd(t),
             'dow'       : lambda t                           : dow(t),
+            'dayofweek' : lambda t                           : dow(t),
         }
 
 precedence = (
@@ -297,10 +274,6 @@ def p_statement_assign(p):
     'statement : NAME EQUALS expression'
     names[p[1]] = p[3]
 
-# def p_expression_comparison(p):
-#     'expression : expression EQUALS EQUALS expression'
-#     p[0] = p[1] == p[4]
-
 def normalize(t):
     if type(t) == datetime and \
             t.hour == 0 and     \
@@ -320,9 +293,6 @@ def p_statement_expr(p):
 def p_expression_binop(p):
     '''expression : expression PLUS expression
                   | expression MINUS expression'''
-    if isinstance(p[1], datetime) and \
-            isinstance(p[3], int):
-        raise SyntaxError('missing time unit')
 
     if (type(p[1]) is date and type(p[3]) is date) or\
             (type(p[1]) is date and type(p[3]) is datetime) or\
@@ -340,6 +310,24 @@ def p_expression_binop(p):
         p[0] = p[1] + p[3]
     elif p[2] == '-': 
         p[0] = p[1] - p[3]
+
+def p_expression_comparison(p):
+    '''expression : expression GT expression
+                  | expression LT expression
+                  | expression GE expression
+                  | expression LE expression
+                  '''
+    try:
+        if p[2] == '<':
+            p[0] = p[1] < p[3]
+        if p[2] == '>':
+            p[0] = p[1] > p[3]
+        if p[2] == '>=':
+            p[0] = p[1] >= p[3]
+        if p[2] == '<=':
+            p[0] = p[1] <= p[3]
+    except TypeError as e:
+        print(str(e))
 
 def p_expression_funcall(p):
     'expression : NAME expression'
@@ -423,16 +411,20 @@ OBJECTS:
                 -2M2s
                 10Y33s
 
-    POINT:
+    DATETIME:
 
-            a datetime object that represents a
-            point in time. Can be interpreted 
-            in various forms such as follows:
+            a datetime object represents a point in 
+            time. Can be interpreted in various forms 
+            such as follows:
 
                 2020/12/31
                 22h:22M
                 2020/12/31 22:22
                 2020/12/31 22:22:22
+    DATE:   
+
+            like datetime, but disregards hours,
+            minutes and seconds
 
     POINT ATTRIBUTES:
             
@@ -445,9 +437,9 @@ VARIABLES:
 
             there are three built-in variables:
 
-            T  - today
-            YD - yesterday, based on today
-            N  - now, which approximates T but also 
+            T  : today
+            YD : yesterday, based on today
+            N  : now, which approximates T but also 
                  includes timezone info
 
             but you can also assign objects to a 
@@ -455,13 +447,22 @@ VARIABLES:
                 foo=1d
                 bar=YD
 
+OPERATORS:
+            +  : adds deltas to points in time
+            -  : takes de difference between two points 
+                 in time and stores a delta
+     <,<=,>,=  : compares two points in time and returns
+                 a boolean
 
-FUNCTIONS: 
+FUNCTIONS / ATTRIBUTES: 
+              
+            functions and attributes work alike
 
-    wait DELTA    - sleeps for the duration
-    next WEEKDAY  - returns the date for the next weekday
-    last WEEKDAY  - returns the date for the last weekday
-    last WEEKDAY  - returns the date for the last weekday
+    wait DELTA       : sleeps for the duration
+    next WEEKDAY     : returns the date for the next weekday
+    last WEEKDAY     : returns the date for the last weekday
+    dow  TIME_POINT  : returns weekday for time point
+
                     ''')
         def do_exit(self, line):
             return True

@@ -19,10 +19,10 @@ YMD_FORMAT = r'^\d{4}-\d{2}-\d{2}$'
 HMS_FORMAT = r'^\d+:\d+:\d+$'
 
 test_expectancy = {
-        # 'yd-5h'                     : lambda r: re.match(YMD_FORMAT, r),
         '(T-1d).dow'                : lambda r: r in days,
         '-1d.dow'                   : lambda r: r in days,
         '08h30'                     : lambda r: r == '8:30:00',
+        '1-1-1-1-1-1'               : lambda r: re.match(HMS_FORMAT, r),
         '1610494238'                : lambda r: r == '2021-01-12 20:30:38',
         '1610494238+4h.dow'         : lambda r: r == 'Wednesday',
         '1610494238.dow'            : lambda r: r == 'Tuesday',
@@ -31,6 +31,7 @@ test_expectancy = {
         '1d'                        : lambda r: r == '1 day, 0:00:00',
         '1d+0h22M'                  : lambda r: r == '1 day, 0:22:00',
         '1w'                        : lambda r: r == '7 days, 0:00:00',
+        '2 < 1'                     : lambda r: not eval(r),
         '22h+2M'                    : lambda r: r == '22:02:00', 
         '22h22M'                    : lambda r: r == '22:22:00', 
         '2h2M'                      : lambda r: r == '2:02:00',
@@ -42,9 +43,8 @@ test_expectancy = {
         'T.dow'                     : lambda r: r in days,
         'YD.day'                    : lambda r: re.match(r'\d+', r),
         'next Sunday'               : lambda r: re.match(YMD_FORMAT, r),
-        '1-1-1-1-1-1'               : lambda r: re.match(HMS_FORMAT, r),
-        # 'next(sunday)+1m'           : lambda r: False,
-        'wait .001s'                : lambda r: True,
+        'wait .001s'                : lambda r: len(r) == 0,
+        'yd-5h'                     : lambda r: re.match(ISO_FORMAT, r),
         }
 
 class Capturing(list):
