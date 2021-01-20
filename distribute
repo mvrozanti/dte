@@ -1,5 +1,3 @@
 #!/bin/bash
 python3 ./setup.py sdist && \
-    python3 -m twine upload --repository-url https://github.com/mvrozanti/dtc dist/*
-
-
+    python3 -m twine upload dist/*
