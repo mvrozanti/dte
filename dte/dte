@@ -431,15 +431,15 @@ OBJECTS:
     DELTA:  
 
             a timedelta object can be interpreted as 
-            sequence consisting of a number followed 
-            by a time unit in ISO format, with case
-            input relaxed except for differentiating
-            months and minutes:
+            chain of (amount, unit) consisting of a 
+            number followed by a time unit in ISO format, 
+            with case input relaxed except for 
+            differentiating months and minutes:
 
-                1D+1d
-                3h+3m
-                -2M2s
-                10Y33s
+                1D+1d  # case insensitive
+                3m+3M  # except for months and minutes
+               -2M+2s  # accepts negative numbers
+                10Y3s  # join them together instead of adding
 
     DATETIME:
 
@@ -461,14 +461,15 @@ OBJECTS:
             a point in time has specific parts that
             can be extracted as such:
 
-                2020/12/31.dow # as in, day of week
+                2020/12/31.dow # as in: day of week
 
 VARIABLES:
 
             there are three built-in variables:
 
             T  : today
-            YD : yesterday, based on today
+            YD : yesterday
+            TM : tomorrow
             N  : now, which approximates T but also 
                  includes timezone info
 
