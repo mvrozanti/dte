@@ -25,6 +25,7 @@ tokens = (
     'T',  # today
     'TM', # tomorrow
     'UNIT',
+    'IN',
     'GT', 'GE', 'LT', 'LE',
     'NAME',
     'DELTA', 
@@ -210,6 +211,10 @@ def dow(t):
     else:
         raise SyntaxError('can\'t get day of week of object of type' + str(type(t)))
 
+def is_000(obj):
+    return obj.hour == obj.minute == obj.second == 0 if type(obj) == datetime \
+            else type(obj) == date 
+
 class Weekday:
     def __init__(self, name):
         self.name = name
@@ -225,16 +230,16 @@ names = {
             'minute'    : lambda t                           : t.minute,
             'second'    : lambda t                           : t.second,
 
-            's'         : lambda                             : datetime.now().second,
-            'S'         : lambda                             : datetime.now().second,
-            'M'         : lambda                             : datetime.now().minute,
-            'h'         : lambda                             : datetime.now().hour,
-            'H'         : lambda                             : datetime.now().hour,
-            'd'         : lambda                             : datetime.now().day,
-            'D'         : lambda                             : datetime.now().day,
-            'm'         : lambda                             : datetime.now().month,
-            'y'         : lambda                             : datetime.now().year,
-            'Y'         : lambda                             : datetime.now().year,
+            # 's'         : lambda                             : datetime.now().second,
+            # 'S'         : lambda                             : datetime.now().second,
+            # 'M'         : lambda                             : datetime.now().minute,
+            # 'h'         : lambda                             : datetime.now().hour,
+            # 'H'         : lambda                             : datetime.now().hour,
+            # 'd'         : lambda                             : datetime.now().day,
+            # 'D'         : lambda                             : datetime.now().day,
+            # 'm'         : lambda                             : datetime.now().month,
+            # 'y'         : lambda                             : datetime.now().year,
+            # 'Y'         : lambda                             : datetime.now().year,
 
             'monday'    : Weekday('monday'),
             'MONDAY'    : Weekday('MONDAY'),
@@ -328,6 +333,7 @@ def p_expression_comparison(p):
                   | expression LT expression
                   | expression GE expression
                   | expression LE expression
+                  | expression EQUALS EQUALS expression
                   '''
     try:
         if p[2] == '<':
@@ -338,6 +344,14 @@ def p_expression_comparison(p):
             p[0] = p[1] >= p[3]
         if p[2] == '<=':
             p[0] = p[1] <= p[3]
+        if p[2:4] == ['=']*2:
+            if type(p[1]) == datetime and \
+                    is_000(p[1]):
+                        p[1] = p[1].date()
+            if type(p[4]) == datetime and \
+                    is_000(p[4]):
+                        p[4] = p[4].date()
+            p[0] = p[1] == p[4]
     except TypeError as e:
         print(str(e))
 
@@ -377,8 +391,6 @@ def p_expression_name(p):
 
 def p_expression_get_attribute(p):
     'expression : expression PERIOD NAME'
-    if p[3] is None:
-        raise SyntaxError
     p[0] = names[p[3]](p[1])
 
 def p_expression_invalid_time(p):
