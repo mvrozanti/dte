@@ -80,6 +80,11 @@ reserved = [
             '|'.join(days),
         ]
 
+def is_reserved(k):
+    for r in reserved:
+        if re.match(r, k):
+            return True
+
 t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
 
 @TOKEN(r'(?i)' + '|'.join(days))
@@ -254,28 +259,6 @@ names = {
             'minute'    : lambda t                           : t.minute,
             'second'    : lambda t                           : t.second,
 
-            # 'monday'    : Weekday('monday'),
-            # 'MONDAY'    : Weekday('MONDAY'),
-            # 'Monday'    : Weekday('monday'),
-            # 'tuesday'   : Weekday('tuesday'),
-            # 'TUESDAY'   : Weekday('TUESDAY'),
-            # 'Tuesday'   : Weekday('Tuesday'),
-            # 'wednesday' : Weekday('wednesday'),
-            # 'WEDNESDAY' : Weekday('WEDNESDAY'),
-            # 'Wednesday' : Weekday('Wednesday'),
-            # 'thursday'  : Weekday('thursday'),
-            # 'THURSDAY'  : Weekday('THURSDAY'),
-            # 'Thursday'  : Weekday('Thursday'),
-            # 'friday'    : Weekday('friday'),
-            # 'FRIDAY'    : Weekday('FRIDAY'),
-            # 'Friday'    : Weekday('Friday'),
-            # 'saturday'  : Weekday('saturday'),
-            # 'SATURDAY'  : Weekday('SATURDAY'),
-            # 'Saturday'  : Weekday('Saturday'),
-            # 'sunday'    : Weekday('sunday'),
-            # 'SUNDAY'    : Weekday('SUNDAY'),
-            # 'Sunday'    : Weekday('Sunday'),
-
             'wait'      : lambda t                           : wait(t),
             'last'      : lambda t                           : last_wd(t),
             'next'      : lambda t                           : next_wd(t),
@@ -300,9 +283,15 @@ def p_statements(p):
     'statement : statement SEMICOLON statement'
     pass
 
+def p_statement_invalid_assignment(p):
+    'statement : WEEKDAY EQUALS expression'
+    raise Exception('can\'t assign expression to weekday')
+
 def p_statement_assign(p):
     'statement : NAME EQUALS expression'
     n = None
+    if is_reserved(p[1]):
+        raise SyntaxError('Kek')
     names[p[1]] = p[3]
 
 def normalize(t):

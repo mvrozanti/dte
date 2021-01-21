@@ -37,6 +37,7 @@ test_expectancy = {
         '1w'                        : lambda r: r == '7 days, 0:00:00',
         '2 < 1'                     : lambda r: not eval(r),
         '(t + 180d)-180d == t'      : lambda r: eval(r),
+        'monday=1'                  : lambda r: True,
         '(n + 180d)-180d == n'      : lambda r: eval(r),
         '(n + 181d)-180d != n'      : lambda r: eval(r),
         '1d in seconds'             : lambda r: r == '86400.0',
