@@ -5,23 +5,35 @@
 - [ ] parse weekday & abbrev
 - [x] add delta week month year
 - [x] closest weekday
-- [ ] python-like comparison
+- [x] python-like comparison
 - [ ] python-like conditional
 - [x] next/last(weekday)
 - [x] timestamp object
 - [x] wait(x)
-- [ ] tu(delta)
+- [ ] format(timepoint)
+- [ ] tu(delta) / in keyword
+- [x] subtract delta from date
 - [x] help
 
 
 ## Examples
 
+### date difference
+`dte 1957-12-26 - today`
+
 ### `wait`
 
-`dte <<< '.1s/wait'` - waits for a tenth of a second and exits
+`dte wait .1s` 
+- waits for a tenth of a second and exits
 
 ### `last` and `next`
-`dte <<< '.1s/wait'` - waits for a tenth of a second and exits
+`dte 'next sunday; last monday'` 
+- takes a week day as argument and returns
+
+### `WEEKDAY`
+`dte monday` - returns the closest weekday date
+
+### Unix Timestamps
+`dte 1611193453.dow` - returns `wednesday`
 
 
-UNIX TIMESTAMPS ARE IN SECONDS

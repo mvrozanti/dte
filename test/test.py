@@ -12,15 +12,19 @@ days = ['Monday', 'Tuesday', 'Wednesday', \
         'Thursday', 'Friday', 'Saturday', 'Sunday']
 days_abbrev = [d[:3] for d in days]
 
-ISO_FORMAT = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$'
+ISO_FORMAT = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$'
 
 YMD_FORMAT = r'^\d{4}-\d{2}-\d{2}$'
 
 HMS_FORMAT = r'^\d+:\d+:\d+$'
 
+DELTA_FORMAT = r'-?\d+ days, \d{1,2}:\d{2}:\d{2}'
+
 test_expectancy = {
         '(T-1d).dow'                : lambda r: r in days,
         '-1d.dow'                   : lambda r: r in days,
+        '1957-12-26 - t'            : lambda r: re.match(DELTA_FORMAT, r),
+        'n'                         : lambda r: re.match(ISO_FORMAT, r),
         '08h30'                     : lambda r: r == '8:30:00',
         '1-1-1-1-1-1'               : lambda r: re.match(HMS_FORMAT, r),
         '1610494238'                : lambda r: r == '2021-01-12 20:30:38',
@@ -37,7 +41,7 @@ test_expectancy = {
         '2h2M'                      : lambda r: r == '2:02:00',
         '3h+3m'                     : lambda r: r.startswith('90 days, 2:59:59'), 
         '3m'                        : lambda r: r.startswith('89 days, 23:59:59'),
-        'T-1.5d'                    : lambda r: re.match(YMD_FORMAT, r),
+        'T-1.5d'                    : lambda r: re.match(ISO_FORMAT, r),
         'T-10d'                     : lambda r: re.match(YMD_FORMAT, r),
         'T.day'                     : lambda r: 0 < int(r) < 32,
         'T.dow'                     : lambda r: r in days,
