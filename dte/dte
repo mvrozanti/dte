@@ -56,14 +56,36 @@ t_EQ        = r'=='
 t_NE        = r'!='
 t_IN        = r'(?i)in'
 
+unit_map = {
+        's': 'seconds',
+        'S': 'seconds',
+        'M': 'minutes',
+        'h': 'hours',
+        'H': 'hours',
+        'd': 'days',
+        'D': 'days',
+        'w': 'weeks',
+        'W': 'weeks',
+        'm': 'months',
+        'y': 'years',
+        'Y': 'years',
+        }
+
 reserved = [
             r'in',
             r'n(ow)?',
             r't(oday)?',
             r'yd|yesterday',
-            r'seconds|minutes|hours|days|weeks|months|years',
+            r'seconds|minutes|hours|days|weeks',
+            '|'.join(days),
         ]
+
 t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
+
+@TOKEN(r'(?i)' + '|'.join(days))
+def t_WEEKDAY(t):
+    t.value = Weekday(t.value)
+    return t
 
 def t_UNIT(t):
     r'(?i)(seconds|minutes|hours|days|weeks|months|years)'
@@ -110,21 +132,6 @@ def get_closest_week_day(week_day):
     if counter_next < counter_prev:
         return next_date.date()
     return prev_date.date()
-
-unit_map = {
-        's': 'seconds',
-        'S': 'seconds',
-        'M': 'minutes',
-        'h': 'hours',
-        'H': 'hours',
-        'd': 'days',
-        'D': 'days',
-        'w': 'weeks',
-        'W': 'weeks',
-        'm': 'months',
-        'y': 'years',
-        'Y': 'years',
-        }
 
 def t_TIME_INVALID(t):
     r'(2[0-3]|[01][0-9]):([0-5][0-9])'
@@ -247,38 +254,27 @@ names = {
             'minute'    : lambda t                           : t.minute,
             'second'    : lambda t                           : t.second,
 
-            # 's'         : lambda                             : datetime.now().second,
-            # 'S'         : lambda                             : datetime.now().second,
-            # 'M'         : lambda                             : datetime.now().minute,
-            # 'h'         : lambda                             : datetime.now().hour,
-            # 'H'         : lambda                             : datetime.now().hour,
-            # 'd'         : lambda                             : datetime.now().day,
-            # 'D'         : lambda                             : datetime.now().day,
-            # 'm'         : lambda                             : datetime.now().month,
-            # 'y'         : lambda                             : datetime.now().year,
-            # 'Y'         : lambda                             : datetime.now().year,
-
-            'monday'    : Weekday('monday'),
-            'MONDAY'    : Weekday('MONDAY'),
-            'Monday'    : Weekday('monday'),
-            'tuesday'   : Weekday('tuesday'),
-            'TUESDAY'   : Weekday('TUESDAY'),
-            'Tuesday'   : Weekday('Tuesday'),
-            'wednesday' : Weekday('wednesday'),
-            'WEDNESDAY' : Weekday('WEDNESDAY'),
-            'Wednesday' : Weekday('Wednesday'),
-            'thursday'  : Weekday('thursday'),
-            'THURSDAY'  : Weekday('THURSDAY'),
-            'Thursday'  : Weekday('Thursday'),
-            'friday'    : Weekday('friday'),
-            'FRIDAY'    : Weekday('FRIDAY'),
-            'Friday'    : Weekday('Friday'),
-            'saturday'  : Weekday('saturday'),
-            'SATURDAY'  : Weekday('SATURDAY'),
-            'Saturday'  : Weekday('Saturday'),
-            'sunday'    : Weekday('sunday'),
-            'SUNDAY'    : Weekday('SUNDAY'),
-            'Sunday'    : Weekday('Sunday'),
+            # 'monday'    : Weekday('monday'),
+            # 'MONDAY'    : Weekday('MONDAY'),
+            # 'Monday'    : Weekday('monday'),
+            # 'tuesday'   : Weekday('tuesday'),
+            # 'TUESDAY'   : Weekday('TUESDAY'),
+            # 'Tuesday'   : Weekday('Tuesday'),
+            # 'wednesday' : Weekday('wednesday'),
+            # 'WEDNESDAY' : Weekday('WEDNESDAY'),
+            # 'Wednesday' : Weekday('Wednesday'),
+            # 'thursday'  : Weekday('thursday'),
+            # 'THURSDAY'  : Weekday('THURSDAY'),
+            # 'Thursday'  : Weekday('Thursday'),
+            # 'friday'    : Weekday('friday'),
+            # 'FRIDAY'    : Weekday('FRIDAY'),
+            # 'Friday'    : Weekday('Friday'),
+            # 'saturday'  : Weekday('saturday'),
+            # 'SATURDAY'  : Weekday('SATURDAY'),
+            # 'Saturday'  : Weekday('Saturday'),
+            # 'sunday'    : Weekday('sunday'),
+            # 'SUNDAY'    : Weekday('SUNDAY'),
+            # 'Sunday'    : Weekday('Sunday'),
 
             'wait'      : lambda t                           : wait(t),
             'last'      : lambda t                           : last_wd(t),
@@ -311,9 +307,7 @@ def p_statement_assign(p):
 
 def normalize(t):
     if type(t) == datetime and \
-            t.hour == 0 and     \
-            t.minute == 0 and    \
-            t.second == 0:        \
+            is_000(t):
         t = t.date()
     return t
 
@@ -383,6 +377,23 @@ def p_expression_funcall(p):
     except:
         raise SyntaxError("Undefined name '%s'" % p[1])
 
+def p_expression_point_in_unit(p):
+    '''expression : DATE IN UNIT
+                  | DATETIME IN UNIT
+                  | TIMESTAMP IN UNIT
+                  '''
+    # total_seconds = p[1].total_seconds()
+    # if p[3] == 'seconds':
+    #     p[0] = total_seconds
+    # if p[3] == 'minutes':
+    #     p[0] = total_seconds / 60
+    # if p[3] == 'hours':
+    #     p[0] = total_seconds / 60 / 60
+    # if p[3] == 'days':
+    #     p[0] = total_seconds / 60 / 60 / 24
+    # if p[3] == 'weeks':
+    #     p[0] = total_seconds / 60 / 60 / 24 / 7
+
 def p_expression_delta_in_unit(p):
     'expression : DELTA IN UNIT'
     total_seconds = p[1].total_seconds()
@@ -397,6 +408,12 @@ def p_expression_delta_in_unit(p):
     if p[3] == 'weeks':
         p[0] = total_seconds / 60 / 60 / 24 / 7
 
+# def p_point(p):
+#     '''point : TIME_MS
+#              | 
+#              
+#              '''
+
 def p_expression_generic(p):
     '''expression : TIME_MS 
                   | TIME_HM
@@ -408,6 +425,7 @@ def p_expression_generic(p):
                   | N
                   | T
                   | DELTA
+                  | WEEKDAY
                   '''
     p[0] = p[1]
 
