@@ -28,7 +28,7 @@ tokens = (
     'TM', # tomorrow
     'UNIT',
     'IN',
-    'GT', 'GE', 'LT', 'LE',
+    'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
     'DELTA', 
     'DATE', 
@@ -52,6 +52,8 @@ t_GT        = r'>'
 t_GE        = r'>='
 t_LT        = r'<'
 t_LE        = r'<='
+t_EQ        = r'=='
+t_NE        = r'!='
 
 def t_NAME(t):
     r'(?i)((?!n(o(w)?)?)(?!t(oday)?)(?!yd|yesterday)[a-z_][a-z0-9_]*)'
@@ -339,7 +341,8 @@ def p_expression_comparison(p):
                   | expression LT expression
                   | expression GE expression
                   | expression LE expression
-                  | expression EQUALS EQUALS expression
+                  | expression EQ expression
+                  | expression NE expression
                   '''
     try:
         if p[2] == '<':
@@ -350,14 +353,16 @@ def p_expression_comparison(p):
             p[0] = p[1] >= p[3]
         if p[2] == '<=':
             p[0] = p[1] <= p[3]
-        if p[2:4] == ['=']*2:
-            if type(p[1]) == datetime and \
-                    is_000(p[1]):
-                        p[1] = p[1].date()
-            if type(p[4]) == datetime and \
-                    is_000(p[4]):
-                        p[4] = p[4].date()
-            p[0] = p[1] == p[4]
+        if type(p[1]) == datetime and \
+                is_000(p[1]):
+                    p[1] = p[1].date()
+        if type(p[3]) == datetime and \
+                is_000(p[3]):
+                    p[4] = p[4].date()
+        if p[2] == '==':
+            p[0] = p[1] == p[3]
+        if p[2] == '!=':
+            p[0] = p[1] != p[3]
     except TypeError as e:
         print(str(e))
 
@@ -447,14 +452,17 @@ OBJECTS:
             time. Can be interpreted in various forms 
             such as follows:
 
-                2020/12/31
-                22h:22M
+                1611269086 # unix timestamp in seconds
                 2020/12/31 22:22
                 2020/12/31 22:22:22
     DATE:   
 
             like datetime, but disregards hours,
             minutes and seconds
+
+                2020/12/31
+                today      # accepts 
+                yesterday  # ⏎
 
     POINT ATTRIBUTES:
             
@@ -467,11 +475,10 @@ VARIABLES:
 
             there are three built-in variables:
 
-            T  : today
-            YD : yesterday
-            TM : tomorrow
-            N  : now, which approximates T but also 
-                 includes timezone info
+               T or today   : is a date
+            YD or yesterday : is a date
+            TM or tomorrow  : is a date 
+            N  or now       : is a datetime
 
             but you can also assign objects to a 
             named variable, like so:
@@ -482,7 +489,7 @@ OPERATORS:
             +  : adds deltas to points in time
             -  : takes de difference between two points 
                  in time and stores a delta
-     <,<=,>,=  : compares two points in time and returns
+ <,<=,>,==,!=  : compares two points in time and returns
                  a boolean
 
 FUNCTIONS / ATTRIBUTES: 
