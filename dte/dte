@@ -54,10 +54,16 @@ t_LT        = r'<'
 t_LE        = r'<='
 t_EQ        = r'=='
 t_NE        = r'!='
+t_IN        = r'(?i)in'
 
-def t_NAME(t):
-    r'(?i)((?!n(o(w)?)?)(?!t(oday)?)(?!yd|yesterday)[a-z_][a-z0-9_]*)'
-    return t
+reserved = [
+            r'in',
+            r'n(ow)?',
+            r't(oday)?',
+            r'yd|yesterday',
+        ]
+t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
+
 
 def t_YD(t):
     r'(?i)(yesterday|yd)'
@@ -373,6 +379,13 @@ def p_expression_funcall(p):
     except:
         raise SyntaxError("Undefined name '%s'" % p[1])
 
+# def p_expression_delta_in_unit(p):
+#     'expression : DELTA IN UNIT'
+#     try:
+#         p[0] = names[p[1].lower()](p[2])
+#     except:
+#         raise SyntaxError("Undefined name '%s'" % p[1])
+
 def p_expression_generic(p):
     '''expression : TIME_MS 
                   | TIME_HM
@@ -461,8 +474,7 @@ OBJECTS:
             minutes and seconds
 
                 2020/12/31
-                today      # accepts 
-                yesterday  # ⏎
+                today
 
     POINT ATTRIBUTES:
             
