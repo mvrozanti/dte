@@ -10,6 +10,8 @@ import sys
 import time
 import types
 
+n = None
+
 replace = lambda replacee,replacer,string: re.sub(replacee, replacer, string)
 
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -72,7 +74,10 @@ def t_T(t):
 
 def t_N(t):
     r'(?i)n(ow)?'
-    t.value = datetime.now()
+    global n
+    if not n:
+        n = datetime.now()
+    t.value = n
     return t
 
 def get_closest_week_day(week_day):
@@ -289,6 +294,7 @@ def p_statements(p):
 
 def p_statement_assign(p):
     'statement : NAME EQUALS expression'
+    n = None
     names[p[1]] = p[3]
 
 def normalize(t):
