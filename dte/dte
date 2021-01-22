@@ -266,10 +266,9 @@ names = {
             'second'    : lambda t                           : t.second,
 
             'wait'      : lambda t                           : wait(t),
-            # 'last'      : lambda t                           : last_wd(t),
-            # 'next'      : lambda t                           : next_wd(t),
             'dow'       : lambda t                           : dow(t),
             'dayofweek' : lambda t                           : dow(t),
+            'weekday'   : lambda t                           : dow(t),
         }
 
 precedence = (
