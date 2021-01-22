@@ -144,13 +144,28 @@ def get_closest_week_day(week_day):
         return next_date.date()
     return prev_date.date()
 
+REGEX_DOY = '\d+\D\d+\D\d+'
+REGEX_0_60 = r'([1-5]?[0-9])'
+REGEX_0_24 = r'(2[0-3]|1?[0-9])'
+
 def t_TIME_HMS(t):
-    r'(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])'
+    r'(2[0-3]|1?[0-9]):([1-5]?[0-9]):(([1-5]?[0-9]))'
+    t.value = datetime.strptime(t.value, '%H:%M:%S')
+    return t
+
+def t_DATE(t):
+    r'(\d+)\D(\d+)\D(\d+)'
+    y,m,d = replace(r'\D', '-', t.value).split('-')
+    t.value = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
+    return t
+
+@TOKEN(REGEX_DOY + ' ' + REGEX_0_24 + ':' + REGEX_0_60 + f'(:{REGEX_0_60})?')
+def t_DATETIME(t):
     t.value = datetime.strptime(t.value, '%H:%M:%S')
     return t
 
 def t_TIME_INVALID(t):
-    r'(2[0-3]|[01][0-9]):([0-5][0-9])'
+    r'REGEX_DOY:([0-5][0-9])'
     first, second = t.value.split(':')
     raise SyntaxError(f'did you mean {first}h{second}M or {first}M{second}s?')
     return t
@@ -184,12 +199,6 @@ def t_DELTA(t):
             next_unit = UNITS_STR[UNITS_STR.index(u)-2]
         le_add = parse_units({next_unit: units_vals['']}) # get successor delta
         t.value += le_add
-    return t
-
-def t_DATE(t):
-    r'(\d+)\D(\d+)\D(\d+)'
-    y,m,d = replace(r'\D', '-', t.value).split('-')
-    t.value = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
     return t
 
 def t_TIMESTAMP(t):
