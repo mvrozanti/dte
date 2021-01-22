@@ -230,13 +230,13 @@ def last_wd(t):
             break
     return prev_date.date()
 
-def next_wd(t):
-    next_date = datetime.now()
+def cyclic(t, direction):
+    cyclic_direction = datetime.now()
     for _ in range(7):
-        next_date += timedelta(days=1)
-        if days[next_date.weekday()].lower() == str(t).lower():
+        cyclic_direction += timedelta(days=direction)
+        if days[cyclic_direction.weekday()].lower() == str(t).lower():
             break
-    return next_date.date()
+    return cyclic_direction.date()
 
 def dow(t):
     if type(t) == date or type(t) == datetime:
@@ -373,10 +373,7 @@ def p_expression_funcall(p):
 
 def p_expression_cyclic_op(p):
     'expression : CYCLIC_OP WEEKDAY'
-    if p[1] == 'next':
-        p[0] = next_wd(p[2])
-    if p[1] == 'last':
-        p[0] = last_wd(p[2])
+    p[0] = cyclic(p[2], 1 if p[1] == 'next' else -1)
 
 def p_expression_delta_in_unit(p):
     'expression : DELTA IN UNIT'
