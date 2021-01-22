@@ -80,6 +80,7 @@ reserved = [
             r'yd|yesterday',
             r'seconds|minutes|hours|days|weeks',
             '|'.join(days),
+            '|'.join(days_abbrev),
         ]
 
 def is_reserved(k):
@@ -89,7 +90,7 @@ def is_reserved(k):
 
 t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
 
-@TOKEN(r'(?i)' + '|'.join(days))
+@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev))
 def t_WEEKDAY(t):
     t.value = Weekday(t.value)
     return t

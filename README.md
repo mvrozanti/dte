@@ -39,4 +39,4 @@
 - [ ] add option to use locale
 - [ ] add tab-completion 
 - [ ] parse month & abbrev
-- [ ] parse weekday & abbrev
+- [x] parse weekday & abbrev
