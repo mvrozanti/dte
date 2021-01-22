@@ -27,6 +27,7 @@ tokens = (
     'T',  # today
     'TM', # tomorrow
     'UNIT',
+    'CYCLIC_OP',
     'IN',
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
@@ -75,6 +76,7 @@ reserved = [
             r'in',
             r'n(ow)?',
             r't(oday)?',
+            r'next|last',
             r'yd|yesterday',
             r'seconds|minutes|hours|days|weeks',
             '|'.join(days),
@@ -90,6 +92,10 @@ t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_
 @TOKEN(r'(?i)' + '|'.join(days))
 def t_WEEKDAY(t):
     t.value = Weekday(t.value)
+    return t
+
+def t_CYCLIC_OP(t):
+    r'(?i)(next|last)'
     return t
 
 def t_UNIT(t):
@@ -260,8 +266,8 @@ names = {
             'second'    : lambda t                           : t.second,
 
             'wait'      : lambda t                           : wait(t),
-            'last'      : lambda t                           : last_wd(t),
-            'next'      : lambda t                           : next_wd(t),
+            # 'last'      : lambda t                           : last_wd(t),
+            # 'next'      : lambda t                           : next_wd(t),
             'dow'       : lambda t                           : dow(t),
             'dayofweek' : lambda t                           : dow(t),
         }
@@ -366,22 +372,12 @@ def p_expression_funcall(p):
     except:
         raise SyntaxError("Undefined name '%s'" % p[1])
 
-def p_expression_point_in_unit(p):
-    '''expression : DATE IN UNIT
-                  | DATETIME IN UNIT
-                  | TIMESTAMP IN UNIT
-                  '''
-    # total_seconds = p[1].total_seconds()
-    # if p[3] == 'seconds':
-    #     p[0] = total_seconds
-    # if p[3] == 'minutes':
-    #     p[0] = total_seconds / 60
-    # if p[3] == 'hours':
-    #     p[0] = total_seconds / 60 / 60
-    # if p[3] == 'days':
-    #     p[0] = total_seconds / 60 / 60 / 24
-    # if p[3] == 'weeks':
-    #     p[0] = total_seconds / 60 / 60 / 24 / 7
+def p_expression_cyclic_op(p):
+    'expression : CYCLIC_OP WEEKDAY'
+    if p[1] == 'next':
+        p[0] = next_wd(p[2])
+    if p[1] == 'last':
+        p[0] = last_wd(p[2])
 
 def p_expression_delta_in_unit(p):
     'expression : DELTA IN UNIT'
