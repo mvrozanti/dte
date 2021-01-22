@@ -1,19 +1,6 @@
 # Date Time Expression
-## To do
-- [x] floating-point time units
-- [ ] parse month & abbrev
-- [ ] parse weekday & abbrev
-- [x] add delta week month year
-- [x] closest weekday
-- [x] python-like comparison
-- [ ] python-like conditional
-- [x] next/last(weekday)
-- [x] timestamp object
-- [x] wait(x)
-- [ ] format(timepoint)
-- [ ] tu(delta) / in keyword
-- [x] subtract delta from date
-- [x] help
+
+`dte` -- date time processing language
 
 
 ## Examples
@@ -36,4 +23,20 @@
 ### Unix Timestamps
 `dte 1611193453.dow` - returns `wednesday`
 
-
+## To do
+- [x] floating-point time units
+- [x] subtract delta from date
+- [x] add delta week month year
+- [x] help
+- [x] closest weekday
+- [x] python-like comparison
+- [ ] python-like conditional
+- [x] wait(x)
+- [x] timestamp object
+- [x] next/last(weekday)
+- [x] in keyword
+- [ ] format(timepoint, fmt)
+- [ ] add option to use locale
+- [ ] add tab-completion 
+- [ ] parse month & abbrev
+- [ ] parse weekday & abbrev

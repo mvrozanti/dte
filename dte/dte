@@ -99,7 +99,7 @@ def t_CYCLIC_OP(t):
     return t
 
 def t_UNIT(t):
-    r'(?i)(seconds|minutes|hours|days|weeks|months|years)'
+    r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
     return t
 
 def t_YD(t):
@@ -144,15 +144,15 @@ def get_closest_week_day(week_day):
         return next_date.date()
     return prev_date.date()
 
+def t_TIME_HMS(t):
+    r'(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])'
+    t.value = datetime.strptime(t.value, '%H:%M:%S')
+    return t
+
 def t_TIME_INVALID(t):
     r'(2[0-3]|[01][0-9]):([0-5][0-9])'
     first, second = t.value.split(':')
     raise SyntaxError(f'did you mean {first}h{second}M or {first}M{second}s?')
-    return t
-
-def t_TIME_HMS(t):
-    r'(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])'
-    t.value = datetime.strptime(t.value, '%H:%M:%S')
     return t
 
 def parse_units(units_vals):
@@ -375,6 +375,16 @@ def p_expression_cyclic_op(p):
     'expression : CYCLIC_OP WEEKDAY'
     p[0] = cyclic(p[2], 1 if p[1] == 'next' else -1)
 
+def p_expression_point_in_unit(p):
+    '''expression : DATE IN UNIT
+                  | DATETIME IN UNIT
+                  | TIMESTAMP IN UNIT
+                  '''
+    # 1-1-1 in timestamp
+    # 1-1-1 00:00:00 in timestamp
+    if p[3] == 'unix':
+        p[0] = int(time.mktime(p[1].timetuple()) )
+
 def p_expression_delta_in_unit(p):
     'expression : DELTA IN UNIT'
     total_seconds = p[1].total_seconds()
@@ -454,9 +464,9 @@ def interactive():
             self.commands.append(line)
         def do_help(self, line):
             print('''
-OBJECTS:
+OBJECTS
 
-    DELTA:  
+    DELTA  
 
             a timedelta object can be interpreted as 
             chain of (amount, unit) consisting of a 
@@ -469,7 +479,7 @@ OBJECTS:
                -2M+2s  # accepts negative numbers
                 10Y3s  # join them together instead of adding
 
-    DATETIME:
+    DATETIME
 
             a datetime object represents a point in 
             time. Can be interpreted in various forms 
@@ -478,7 +488,7 @@ OBJECTS:
                 1611269086 # unix timestamp in seconds
                 2020/12/31 22:22
                 2020/12/31 22:22:22
-    DATE:   
+    DATE   
 
             like datetime, but disregards hours,
             minutes and seconds
@@ -486,14 +496,14 @@ OBJECTS:
                 2020/12/31
                 today
 
-    POINT ATTRIBUTES:
+    POINT ATTRIBUTES
             
             a point in time has specific parts that
             can be extracted as such:
 
                 2020/12/31.dow # as in: day of week
 
-VARIABLES:
+VARIABLES
 
             there are three built-in variables:
 
@@ -507,14 +517,14 @@ VARIABLES:
                 foo=1d
                 bar=YD
 
-OPERATORS:
+OPERATORS
             +  : adds deltas to points in time
             -  : takes de difference between two points 
                  in time and stores a delta
  <,<=,>,==,!=  : compares two points in time and returns
                  a boolean
 
-FUNCTIONS / ATTRIBUTES: 
+FUNCTIONS / ATTRIBUTES 
               
             functions and attributes work alike
 
