@@ -178,10 +178,11 @@ def t_DATETIME(t):
     else:
         M,S = [replace('[hhMsS]', '', time_unit) for time_unit in time if time_unit]
         le_time = datetime.strptime(f'{M}:{S}', '%M:%S').time()
+
     if not date_str:
         t.value = le_time
-        return t
-    t.value = datetime.combine(date,le_time)
+    else:
+        t.value = datetime.combine(date,le_time)
     return t
 
 def parse_units(units_vals):
