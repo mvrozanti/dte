@@ -44,6 +44,7 @@ test_expectancy = {
         '1d in seconds'             : lambda r: r == '86400.0',
         '1d in minutes'             : lambda r: r == '1440.0',
         '1d in hours'               : lambda r: r == '24.0',
+        '1957-12-26 22:22:22 in unix'     : lambda r: r == '-379118258',
         '1d1M in hours'             : lambda r: r == '24.016666666666666',
         '22h+2M'                    : lambda r: r == '22:02:00', 
         '22h22M'                    : lambda r: r == '22:22:00', 
