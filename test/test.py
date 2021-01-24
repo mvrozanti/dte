@@ -24,6 +24,7 @@ test_expectancy = {
         '(T-1d).dow'                : lambda r: r in days,
         '-1d.dow'                   : lambda r: r in days,
         '1957-12-26 - t'            : lambda r: re.match(DELTA_FORMAT, r),
+        '1957-12-26 22:22:22 - t'   : lambda r: re.match(DELTA_FORMAT, r),
         'n'                         : lambda r: re.match(ISO_FORMAT, r),
         '08h30'                     : lambda r: r == '8:30:00',
         '1-1-1-1-1-1'               : lambda r: re.match(HMS_FORMAT, r),

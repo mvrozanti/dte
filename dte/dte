@@ -354,6 +354,12 @@ def p_expression_binop(p):
     if type(p[3]) == date and type(p[1]) == timedelta:
         p[3] = datetime.combine(p[3], datetime.min.time())
 
+    if type(p[1]) == date and type(p[3]) == datetime:
+        p[1] = datetime.combine(p[1], datetime.min.time())
+
+    if type(p[3]) == date and type(p[1]) == datetime:
+        p[3] = datetime.combine(p[3], datetime.min.time())
+
     if p[1] is None or p[3] is None:
         raise Exception(f'in {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
 
