@@ -574,7 +574,7 @@ def p_expression_uminus(p):
 
 
 import ply.yacc as yacc
-yacc.yacc()
+yacc.yacc(errorlog=yacc.NullLogger())
 
 def interactive():
     import cmd
