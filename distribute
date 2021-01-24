@@ -1,4 +1,5 @@
 #!/bin/bash
-rm dist/*
+rm -r dist
+rm -r dte.egg-info
 python3 ./setup.py sdist && \
     python3 -m twine upload dist/*
