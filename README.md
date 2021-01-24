@@ -8,6 +8,10 @@ If you don't think it's intuitive, it's probably not finished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
+## Install
+
+`pip install dte`
+
 ## How to use
 For general use just keep in mind:
 
