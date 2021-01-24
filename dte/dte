@@ -5,17 +5,89 @@ from dateutil.relativedelta import relativedelta
 from ply.lex import TOKEN
 import calendar
 import code
+import locale
 import re
 import sys
 import time
 import types
+
+HELP = '''
+OBJECTS
+
+    DELTA  
+
+            a timedelta object can be interpreted as 
+            chain of (amount, unit) consisting of a 
+            number followed by a time unit in ISO format, 
+            with case input relaxed except for 
+            differentiating months and minutes:
+
+                1D+1d  # case insensitive
+                3m+3M  # except for months and minutes
+               -2M+2s  # accepts negative numbers
+                10Y3s  # join them together instead of adding
+
+    DATETIME
+
+            a datetime object represents a point in 
+            time. Can be interpreted in various forms 
+            such as follows:
+
+                1611269086 # unix timestamp in seconds
+                2020/12/31 22:22
+                2020 Jan 12
+                2020 December 20
+                2020/12/31 22:22:22
+                2020/12/31
+                today
+
+    POINT ATTRIBUTES
+            
+            a point in time has specific parts that
+            can be extracted as such:
+
+                2020/12/31.dow # as in: day of week
+
+VARIABLES
+
+            there are three built-in variables:
+
+               T or today   : is a date
+            YD or yesterday : is a date
+            TM or tomorrow  : is a date 
+            N  or now       : is a datetime
+
+            but you can also assign objects to a 
+            named variable, like so:
+                foo=1d
+                bar=YD
+
+OPERATORS
+            +  : adds deltas to points in time
+            -  : takes de difference between two points 
+                 in time and stores a delta
+ <,<=,>,==,!=  : compares two points in time and returns
+                 a boolean
+
+FUNCTIONS / ATTRIBUTES 
+              
+            functions and attributes work alike
+
+    wait DELTA       : sleeps for the duration
+    next WEEKDAY     : returns the date for the next weekday
+    last WEEKDAY     : returns the date for the last weekday
+    dow  TIME_POINT  : returns weekday for time point
+'''
 
 n = None
 
 replace = lambda replacee,replacement,string: re.sub(replacee, replacement, string)
 
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+months = ['January', 'February', 'March', 'April', 'May', 'June', \
+        'July', 'August', 'September', 'October', 'November', 'December']
 days_abbrev = [d[:3] for d in days]
+months_abbrev = [m[:3] for m in months]
 
 tokens = (
     'PLUS','MINUS','EQUALS',
@@ -32,6 +104,7 @@ tokens = (
     'DELTA', 
     'TIMESTAMP', 
     'WEEKDAY', 
+    'MONTH', 
     'PERIOD', 
     'SEMICOLON', 
     'DATETIME', 
@@ -78,6 +151,8 @@ reserved = [
             r'seconds|minutes|hours|days|weeks',
             '|'.join(days),
             '|'.join(days_abbrev),
+            '|'.join(months),
+            '|'.join(months_abbrev),
         ]
 
 def is_reserved(k):
@@ -90,6 +165,11 @@ t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_
 @TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev))
 def t_WEEKDAY(t):
     t.value = Weekday(t.value)
+    return t
+
+@TOKEN(r'(?i)' + '|'.join(months) + '|' + '|'.join(months_abbrev))
+def t_MONTH(t):
+    t.value = Month(t.value)
     return t
 
 def t_CYCLIC_OP(t):
@@ -142,7 +222,7 @@ def get_closest_week_day(week_day):
         return next_date.date()
     return prev_date.date()
 
-REGEX_DOY = r'(?:\d+[^\d:]\d+[^\d:]\d+)'
+REGEX_DOY = r'(?:\d+[^\d:]\d+[^\d:]\d+|\d+\s+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + ')\s+\d+)'
 REGEX_0_23 = r'(?:2[0-3]|1?[0-9])'
 REGEX_0_59 = r'(?:[1-5]?[0-9])'
 REGEX_24_59 = r'(?:[3-5][0-9]|2[4-9])'
@@ -153,11 +233,20 @@ def t_DATETIME(t):
     date_str,*time = re.search(DATETIME_REGEX, t.value).groups()
     if t.value.count(':') == 1 and \
             not any(c in t.value for c in 'hHMsS'):
-                code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
                 raise Exception(f'did you mean {time[0]}h:{time[1]} or {time[0]}M:{time[1]}?')
     if date_str:
-        y,m,d = replace('\D', '-', date_str).split('-')
-        date = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
+        if any(month in date_str for month in months_abbrev):
+            y,b,d = date_str.split(' ')
+            try:
+                date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%b-%d').date()
+            except:
+                try:
+                    date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%B-%d').date()
+                except:
+                    raise Exception(f'Invalid syntax: {date_str}')
+        else:
+            y,m,d = replace('\D', '-', date_str).split('-')
+            date = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
         if all(time_unit is None for time_unit in time):
             t.value = date
             return t
@@ -282,6 +371,13 @@ class Weekday:
     def __str__(self):
         return self.name
 
+class Month:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
 names = {
             'day'       : lambda t                           : t.day,
             'month'     : lambda t                           : t.month,
@@ -294,6 +390,7 @@ names = {
             'dow'       : lambda t                           : dow(t),
             'dayofweek' : lambda t                           : dow(t),
             'weekday'   : lambda t                           : dow(t),
+            'help'      : lambda                             : print(HELP),
         }
 
 precedence = (
@@ -484,77 +581,7 @@ def interactive():
             yacc.parse(line)
             self.commands.append(line)
         def do_help(self, line):
-            print('''
-OBJECTS
-
-    DELTA  
-
-            a timedelta object can be interpreted as 
-            chain of (amount, unit) consisting of a 
-            number followed by a time unit in ISO format, 
-            with case input relaxed except for 
-            differentiating months and minutes:
-
-                1D+1d  # case insensitive
-                3m+3M  # except for months and minutes
-               -2M+2s  # accepts negative numbers
-                10Y3s  # join them together instead of adding
-
-    DATETIME
-
-            a datetime object represents a point in 
-            time. Can be interpreted in various forms 
-            such as follows:
-
-                1611269086 # unix timestamp in seconds
-                2020/12/31 22:22
-                2020/12/31 22:22:22
-    DATE   
-
-            like datetime, but disregards hours,
-            minutes and seconds
-
-                2020/12/31
-                today
-
-    POINT ATTRIBUTES
-            
-            a point in time has specific parts that
-            can be extracted as such:
-
-                2020/12/31.dow # as in: day of week
-
-VARIABLES
-
-            there are three built-in variables:
-
-               T or today   : is a date
-            YD or yesterday : is a date
-            TM or tomorrow  : is a date 
-            N  or now       : is a datetime
-
-            but you can also assign objects to a 
-            named variable, like so:
-                foo=1d
-                bar=YD
-
-OPERATORS
-            +  : adds deltas to points in time
-            -  : takes de difference between two points 
-                 in time and stores a delta
- <,<=,>,==,!=  : compares two points in time and returns
-                 a boolean
-
-FUNCTIONS / ATTRIBUTES 
-              
-            functions and attributes work alike
-
-    wait DELTA       : sleeps for the duration
-    next WEEKDAY     : returns the date for the next weekday
-    last WEEKDAY     : returns the date for the last weekday
-    dow  TIME_POINT  : returns weekday for time point
-
-                    ''')
+            print(HELP)
         def do_exit(self, line):
             return True
     CmdParse().cmdloop()
