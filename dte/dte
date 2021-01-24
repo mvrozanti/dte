@@ -147,12 +147,13 @@ REGEX_0_23 = r'(?:2[0-3]|1?[0-9])'
 REGEX_0_59 = r'(?:[1-5]?[0-9])'
 REGEX_24_59 = r'(?:[3-5][0-9]|2[4-9])'
 
-DATETIME_REGEX = f'(?:({REGEX_DOY})\s?|(' + REGEX_0_23 + '[hHM]?):(' + REGEX_0_59 + f')(?::({REGEX_0_59}[MsS]?))?)' + '{1,2}'
+DATETIME_REGEX = f'(?:({REGEX_DOY})\s?|(' + REGEX_0_23 + '[hHM]?):(' + REGEX_0_59 + f'[MsS]?)(?::({REGEX_0_59}))?)' + '{1,2}'
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
     date_str,*time = re.search(DATETIME_REGEX, t.value).groups()
     if t.value.count(':') == 1 and \
             not any(c in t.value for c in 'hHMsS'):
+                code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
                 raise Exception(f'did you mean {time[0]}h:{time[1]} or {time[0]}M:{time[1]}?')
     if date_str:
         y,m,d = replace('\D', '-', date_str).split('-')
