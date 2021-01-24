@@ -12,7 +12,7 @@ import types
 
 n = None
 
-replace = lambda replacee,replacer,string: re.sub(replacee, replacer, string)
+replace = lambda replacee,replacement,string: re.sub(replacee, replacement, string)
 
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 days_abbrev = [d[:3] for d in days]
@@ -20,8 +20,6 @@ days_abbrev = [d[:3] for d in days]
 tokens = (
     'PLUS','MINUS','EQUALS',
     'LPAREN','RPAREN',
-    'TIME_INVALID',
-    'TIME_MS', 'TIME_HM', 'TIME_HMS',
     'YD', # yesterday
     'N',  # now
     'T',  # today
@@ -32,7 +30,6 @@ tokens = (
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
     'DELTA', 
-    'DATE', 
     'TIMESTAMP', 
     'WEEKDAY', 
     'PERIOD', 
@@ -145,30 +142,47 @@ def get_closest_week_day(week_day):
         return next_date.date()
     return prev_date.date()
 
-REGEX_DOY = '\d+\D\d+\D\d+'
-REGEX_0_60 = r'([1-5]?[0-9])'
-REGEX_0_24 = r'(2[0-3]|1?[0-9])'
+REGEX_DOY = r'(?:\d+[^\d:]\d+[^\d:]\d+)'
+REGEX_0_23 = r'(?:2[0-3]|1?[0-9])'
+REGEX_0_59 = r'(?:[1-5]?[0-9])'
+REGEX_24_59 = r'(?:[3-5][0-9]|2[4-9])'
 
-def t_TIME_HMS(t):
-    r'(2[0-3]|1?[0-9]):([1-5]?[0-9]):(([1-5]?[0-9]))'
-    t.value = datetime.strptime(t.value, '%H:%M:%S')
-    return t
-
-def t_DATE(t):
-    r'(\d+)\D(\d+)\D(\d+)'
-    y,m,d = replace(r'\D', '-', t.value).split('-')
-    t.value = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
-    return t
-
-@TOKEN(REGEX_DOY + ' ' + REGEX_0_24 + ':' + REGEX_0_60 + f'(:{REGEX_0_60})?')
+DATETIME_REGEX = f'(?:({REGEX_DOY})\s?|(' + REGEX_0_23 + '[hHM]?):(' + REGEX_0_59 + f')(?::({REGEX_0_59}[MsS]?))?)' + '{1,2}'
+# print(DATETIME_REGEX)
+@TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
-    t.value = datetime.strptime(t.value, '%H:%M:%S')
-    return t
-
-def t_TIME_INVALID(t):
-    r'REGEX_DOY:([0-5][0-9])'
-    first, second = t.value.split(':')
-    raise SyntaxError(f'did you mean {first}h{second}M or {first}M{second}s?')
+    date_str,*time = re.search(DATETIME_REGEX, t.value).groups()
+    if t.value.count(':') == 1 and \
+            not any(c in t.value for c in 'hHMsS'):
+                raise Exception(f'did you mean {time[0]}h:{time[1]} or {time[0]}M:{time[1]}?')
+    if date_str:
+        y,m,d = replace('\D', '-', date_str).split('-')
+        date = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
+        if all(time_unit is None for time_unit in time):
+            t.value = date
+            return t
+    else:
+        date = datetime.today()
+    is_HMS = t.value.count(':') == 2
+    is_HM = 'h' in time[0] or \
+            'H' in time[0] or \
+            'M' in time[1] or \
+            (time[2] is not None and \
+                ('s' in time[2] or \
+                'S' in time[2]))
+    if is_HMS:
+        H,M,S = [replace('[hhMsS]', '', time_unit) for time_unit in time]
+        le_time = datetime.strptime(f'{H}:{M}:{S}', '%H:%M:%S').time()
+    elif is_HM:
+        H,M = [replace(r'[hhMsS]', '', time_unit) for time_unit in time if time_unit]
+        le_time = datetime.strptime(f'{H}:{M}', '%H:%M').time()
+    else:
+        M,S = [replace('[hhMsS]', '', time_unit) for time_unit in time if time_unit]
+        le_time = datetime.strptime(f'{M}:{S}', '%M:%S').time()
+    if not date_str:
+        t.value = le_time
+        return t
+    t.value = datetime.combine(date,le_time)
     return t
 
 def parse_units(units_vals):
@@ -228,7 +242,7 @@ def wait(t):
     elif isinstance(t, timedelta):
         delta = t
     else:
-        raise SyntaxError('wait accepts a time point or time delta only')
+        raise Exception('wait accepts a time point or time delta only')
     if delta > timedelta(0):
         time.sleep(delta.total_seconds())
 
@@ -254,7 +268,7 @@ def dow(t):
     elif type(t) == timedelta:
         return days[(datetime.now()+t).weekday()]
     else:
-        raise SyntaxError('can\'t get day of week of object of type' + str(type(t)))
+        raise Exception('can\'t get day of week of object of type' + str(type(t)))
 
 def is_000(obj):
     return obj.hour == obj.minute == obj.second == 0 if type(obj) == datetime \
@@ -282,6 +296,14 @@ names = {
         }
 
 precedence = (
+    # ('nonassoc',
+    #     'TIMESTAMP',
+    #
+    #     ),
+    # ('nonassoc',
+    #     'DATETIME',
+    #
+    #     ),
     ('right',
         'UMINUS',
 
@@ -306,7 +328,7 @@ def p_statement_assign(p):
     'statement : NAME EQUALS expression'
     n = None
     if is_reserved(p[1]):
-        raise SyntaxError('Kek')
+        raise Exception('can\'t use reserved keyword')
     names[p[1]] = p[3]
 
 def normalize(t):
@@ -333,7 +355,7 @@ def p_expression_binop(p):
         p[3] = datetime.combine(p[3], datetime.min.time())
 
     if p[1] is None or p[3] is None:
-        raise SyntaxError(f'in {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
+        raise Exception(f'in {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
 
     if type(p[1]) == Weekday:
         p[1] = get_closest_week_day(str(p[1]))
@@ -379,15 +401,14 @@ def p_expression_funcall(p):
     try:
         p[0] = names[p[1].lower()](p[2])
     except:
-        raise SyntaxError("Undefined name '%s'" % p[1])
+        raise Exception("Undefined name '%s'" % p[1])
 
 def p_expression_cyclic_op(p):
     'expression : CYCLIC_OP WEEKDAY'
     p[0] = cyclic(p[2], 1 if p[1] == 'next' else -1)
 
 def p_expression_point_in_unit(p):
-    '''expression : DATE IN UNIT
-                  | DATETIME IN UNIT
+    '''expression : DATETIME IN UNIT
                   | TIMESTAMP IN UNIT
                   '''
     # 1-1-1 in timestamp
@@ -409,25 +430,21 @@ def p_expression_delta_in_unit(p):
     if p[3] == 'weeks':
         p[0] = total_seconds / 60 / 60 / 24 / 7
 
-# def p_point(p):
-#     '''point : TIME_MS
-#              | 
-#              
-#              '''
-
 def p_expression_generic(p):
-    '''expression : TIME_MS 
-                  | TIME_HM
-                  | TIME_HMS
-                  | TIMESTAMP
-                  | DATE
-                  | YD
-                  | TM
-                  | N
-                  | T
-                  | DELTA
-                  | WEEKDAY
+    '''expression : DELTA 
+                  | point
                   '''
+    p[0] = p[1]
+
+def p_point(p):
+    '''point : N
+             | T
+             | TIMESTAMP
+             | DATETIME
+             | TM
+             | WEEKDAY
+             | YD
+             '''
     p[0] = p[1]
 
 def p_expression_name(p):
@@ -446,9 +463,6 @@ def p_expression_name(p):
 def p_expression_get_attribute(p):
     'expression : expression PERIOD NAME'
     p[0] = names[p[3]](p[1])
-
-def p_expression_invalid_time(p):
-    'expression : TIME_INVALID'
 
 def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
