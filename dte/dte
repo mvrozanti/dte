@@ -85,7 +85,7 @@ replace = lambda replacee,replacement,string: re.sub(replacee, replacement, stri
 
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 months = ['January', 'February', 'March', 'April', 'May', 'June', \
-        'July', 'August', 'September', 'October', 'November', 'December']
+            'July', 'August', 'September', 'October', 'November', 'December']
 days_abbrev = [d[:3] for d in days]
 months_abbrev = [m[:3] for m in months]
 
@@ -104,7 +104,6 @@ tokens = (
     'DELTA', 
     'TIMESTAMP', 
     'WEEKDAY', 
-    'MONTH', 
     'PERIOD', 
     'SEMICOLON', 
     'DATETIME', 
@@ -258,10 +257,10 @@ def t_DATETIME(t):
         if any(month in date_str for month in months_abbrev):
             y,b,d = date_str.split(' ')
             try:
-                date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%b-%d').date()
+                date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%b-%d')
             except:
                 try:
-                    date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%B-%d').date()
+                    date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%B-%d')
                 except:
                     raise Exception(f'Invalid syntax: {date_str}')
         else:
@@ -395,21 +394,20 @@ names = {
         }
 
 precedence = (
+    ('left',
+        'IN', 
+        ),
     ('right',
         'UMINUS',
-
         ),
     ('left',
         'PLUS',
         'MINUS', 
-        'NAME', 
-
         ),
     )
 
 def p_statements(p):
     'statement : statement SEMICOLON statement'
-    pass
 
 def p_statement_invalid_assignment(p):
     'statement : WEEKDAY EQUALS expression'
@@ -438,7 +436,8 @@ def p_statement_expr(p):
 
 def p_expression_binop(p):
     '''expression : expression PLUS expression
-                  | expression MINUS expression'''
+                  | expression MINUS expression
+                  '''
     if type(p[1]) == date and type(p[3]) == timedelta:
         p[1] = datetime.combine(p[1], datetime.min.time())
 
@@ -471,6 +470,13 @@ def p_expression_comparison(p):
                   | expression EQ expression
                   | expression NE expression
                   '''
+
+    if type(p[1]) == date and type(p[3]) == datetime:
+        p[1] = datetime.combine(p[1], datetime.min.time())
+
+    if type(p[3]) == date and type(p[1]) == datetime:
+        p[3] = datetime.combine(p[3], datetime.min.time())
+
     try:
         if p[2] == '<':
             p[0] = p[1] < p[3]
@@ -485,7 +491,7 @@ def p_expression_comparison(p):
                     p[1] = p[1].date()
         if type(p[3]) == datetime and \
                 is_000(p[3]):
-                    p[4] = p[4].date()
+                    p[3] = p[3].date()
         if p[2] == '==':
             p[0] = p[1] == p[3]
         if p[2] == '!=':
@@ -505,25 +511,24 @@ def p_expression_cyclic_op(p):
     p[0] = cyclic(p[2], 1 if p[1] == 'next' else -1)
 
 def p_expression_point_in_unit(p):
-    '''expression : DATETIME IN UNIT
-                  | TIMESTAMP IN UNIT
-                  '''
-    if p[3] == 'unix':
+    'expression : expression IN UNIT'
+    to_unix = p[3] == 'unix'
+    if type(p[1]) == timedelta and to_unix:
+        raise Exception('can\'t convert timedelta to unix timestamp')
+    if to_unix:
         p[0] = int(time.mktime(p[1].timetuple()))
-
-def p_expression_delta_in_unit(p):
-    'expression : DELTA IN UNIT'
-    total_seconds = p[1].total_seconds()
-    if p[3] == 'seconds':
-        p[0] = total_seconds
-    if p[3] == 'minutes':
-        p[0] = total_seconds / 60
-    if p[3] == 'hours':
-        p[0] = total_seconds / 60 / 60
-    if p[3] == 'days':
-        p[0] = total_seconds / 60 / 60 / 24
-    if p[3] == 'weeks':
-        p[0] = total_seconds / 60 / 60 / 24 / 7
+    if p[3].lower() in unit_map.values():
+        total_seconds = p[1].total_seconds()
+        if p[3] == 'seconds':
+            p[0] = total_seconds
+        if p[3] == 'minutes':
+            p[0] = total_seconds / 60
+        if p[3] == 'hours':
+            p[0] = total_seconds / 60 / 60
+        if p[3] == 'days':
+            p[0] = total_seconds / 60 / 60 / 24
+        if p[3] == 'weeks':
+            p[0] = total_seconds / 60 / 60 / 24 / 7
 
 def p_expression_generic(p):
     '''expression : DELTA 

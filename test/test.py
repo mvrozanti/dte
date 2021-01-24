@@ -56,6 +56,7 @@ test_expectancy = {
         '1d'                          : lambda r: r == '1 day, 0:00:00',
         '1d+0h22M'                    : lambda r: r == '1 day, 0:22:00',
         '1d1M in hours'               : lambda r: r == '24.016666666666666',
+        '1970 Jan 1 - 3h in unix'     : lambda r: int(r) <= 24*60*60,
         '1w'                          : lambda r: r == '7 days, 0:00:00',
         '2 < 1'                       : lambda r: not eval(r),
         '22:22:22'                    : lambda r: re.match(HMS_FORMAT, r),
