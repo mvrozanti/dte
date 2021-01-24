@@ -41,21 +41,14 @@ OBJECTS
                 2020/12/31
                 today
 
-    POINT ATTRIBUTES
-            
-            a point in time has specific parts that
-            can be extracted as such:
-
-                2020/12/31.dow # as in: day of week
-
 VARIABLES
 
             there are three built-in variables:
 
-               T or today   : is a date
-            YD or yesterday : is a date
-            TM or tomorrow  : is a date 
-            N  or now       : is a datetime
+                T or today     
+                YD or yesterday
+                TM or tomorrow 
+                N  or now      
 
             but you can also assign objects to a 
             named variable, like so:
@@ -66,17 +59,24 @@ OPERATORS
             +  : adds deltas to points in time
             -  : takes de difference between two points 
                  in time and stores a delta
+
  <,<=,>,==,!=  : compares two points in time and returns
                  a boolean
 
+KEYWORDS
+            in :  
+
 FUNCTIONS / ATTRIBUTES 
               
-            functions and attributes work alike
-
     wait DELTA       : sleeps for the duration
+
     next WEEKDAY     : returns the date for the next weekday
+
     last WEEKDAY     : returns the date for the last weekday
-    dow  TIME_POINT  : returns weekday for time point
+
+dayofweek TIME_POINT : returns weekday for time point
+    dow  TIME_POINT  : ⏎
+    TIME_POINT.dow   : ⏎
 '''
 
 n = None
@@ -159,6 +159,26 @@ def is_reserved(k):
     for r in reserved:
         if re.match(r, k):
             return True
+
+UNITS_STR = 'sSMhHdDwWmyY'
+FLOATING_POINT = r'((?:\d*[.])?\d+)'
+DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']|$))*'
+# print(DELTA_TOKEN)
+@TOKEN(DELTA_TOKEN)
+def t_DELTA(t):
+    units_vals = OrderedDict()
+    matches = re.findall(FLOATING_POINT + '(['+UNITS_STR+']|$)', t.value)
+    for v,u in matches:
+        units_vals.update({ u if u in 'mM' else u.lower(): float(v) if v else 1 })
+    t.value = parse_units(units_vals)
+    if '' in units_vals:
+        u,_ = list(units_vals.items())[list(units_vals.keys()).index('')-1]
+        next_unit = UNITS_STR[UNITS_STR.index(u)-1]
+        if next_unit.lower() == u.lower():
+            next_unit = UNITS_STR[UNITS_STR.index(u)-2]
+        le_add = parse_units({next_unit: units_vals['']}) # get successor delta
+        t.value += le_add
+    return t
 
 t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
 
@@ -286,25 +306,6 @@ def parse_units(units_vals):
             else:
                 parsed += timedelta(**{long_name: units_vals[unit]})
     return parsed
-
-UNITS_STR = 'sSMhHdDwWmyY'
-FLOATING_POINT = r'((?:\d*[.])?\d+)'
-DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']|$))*'
-@TOKEN(DELTA_TOKEN)
-def t_DELTA(t):
-    units_vals = OrderedDict()
-    matches = re.findall(FLOATING_POINT + '(['+UNITS_STR+']|$)', t.value)
-    for v,u in matches:
-        units_vals.update({ u if u in 'mM' else u.lower(): float(v) if v else 1 })
-    t.value = parse_units(units_vals)
-    if '' in units_vals:
-        u,_ = list(units_vals.items())[list(units_vals.keys()).index('')-1]
-        next_unit = UNITS_STR[UNITS_STR.index(u)-1]
-        if next_unit.lower() == u.lower():
-            next_unit = UNITS_STR[UNITS_STR.index(u)-2]
-        le_add = parse_units({next_unit: units_vals['']}) # get successor delta
-        t.value += le_add
-    return t
 
 def t_TIMESTAMP(t):
     r'\d+'
