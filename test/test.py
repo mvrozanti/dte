@@ -33,6 +33,7 @@ test_expectancy = {
         '1-1-1 23h:23'                : lambda r: re.match(ISO_FORMAT, r),
         '1-1-1 23h:23M'               : lambda r: re.match(ISO_FORMAT, r),
         '1-1-1 23M:23'                : lambda r: re.match(ISO_FORMAT, r),
+        'n - 1234'                    : lambda r: re.match(DELTA_FORMAT, r),
         '1-1-1 23M:23s'               : lambda r: re.match(ISO_FORMAT, r),
         '1-1-1 23M:23S'               : lambda r: re.match(ISO_FORMAT, r),
         '1-1-1 23:23S'                : lambda r: re.match(ISO_FORMAT, r),
