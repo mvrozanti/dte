@@ -62,6 +62,7 @@ test_expectancy = {
         '22h+2M'                      : lambda r: r == '22:02:00', 
         '22h22M'                      : lambda r: r == '22:22:00', 
         '6y5m4d3h2M1s'                : lambda r: '2346 days, 3:02:00' in r,
+        '7y6m5w4d3h2M1s'              : lambda r: '2776 days, 3:02:00' in r,
         '2h2M'                        : lambda r: r == '2:02:00',
         '3h+3m'                       : lambda r: r.startswith('90 days, 2:59:59'), 
         '3m'                          : lambda r: r.startswith('89 days, 23:59:59'),

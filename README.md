@@ -23,7 +23,7 @@ For general use just keep in mind:
 
 `dte last tuesday` - returns last tuesday's date
 
-`dte next tuesday` - returns next tuesday's date
+`dte next tue` - returns next tuesday's date
 
 `dte 1611193453.dow` - returns `wednesday`
 
@@ -34,8 +34,7 @@ For general use just keep in mind:
 ### delta declaration and operations
 `dte 6y5m4d3h2M1s`
 `dte 1d2M+2M+3h`
-
-
+`dte -100.5d`
 
 ## To do
 - [x] floating-point time units
