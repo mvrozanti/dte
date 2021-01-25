@@ -4,7 +4,7 @@
 ![Travis (.com)](https://img.shields.io/travis/com/mvrozanti/dte)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dte)
 
-`dte` is a WIP date-time language with focus on broad interpretation and simplicity.
+`dte` is a WIP date-time processing language with focus on broad interpretation and simplicity.
 
 If you don't think it's intuitive, it's probably not finished.
 
@@ -67,9 +67,9 @@ For general use just keep in mind:
 - [x] next/last(weekday)
 - [x] in keyword
   - [ ] add geolocation? `18H:00 in England`?
-  - [ ] last friday in `2014`
-  - [ ] last friday in `April`
-  - [ ] last friday in `April 2014`
+  - [ ] `last friday in 2014`
+  - [ ] `last friday in April`
+  - [ ] `last friday in April 2014`
 - [ ] format(timepoint, fmt) (in keyword)units given current time field
 - [ ] add option to use locale or custom formats for i/o
 - [ ] add tab-completion for:
