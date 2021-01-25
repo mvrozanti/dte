@@ -2,6 +2,7 @@
 
 ![PyPI](https://img.shields.io/pypi/v/dte)
 ![Travis (.com)](https://img.shields.io/travis/com/mvrozanti/dte)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dte)
 
 `dte` is a WIP date-time language with focus on broad interpretation and simplicity.
 
