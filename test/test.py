@@ -67,7 +67,7 @@ test_expectancy = {
         '22:22:22s'                   : lambda r: r == '22:22:22',
         '22h:22:22s'                  : lambda r: r == '22:22:22',
         '22:22:22s'                   : lambda r: r == '22:22:22',
-# '22M:22 + 4h'                 : lambda r: False,
+        '22M:22 + 4h'                 : lambda r: r == '8:22:22',
         '2 < 1'                       : lambda r: not eval(r),
         '22:22:22'                    : lambda r: re.match(HMS_FORMAT, r),
         '22h+2M'                      : lambda r: r == '22:02:00', 
