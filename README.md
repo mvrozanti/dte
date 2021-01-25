@@ -20,6 +20,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - Dates are always interpreted with highest units appearing before, e.g.: `%Y-%m-%d` or `%Y %b %d` formats, although the unit separator doesn't have to be "-" for the former
 - Unix timestamps are both interpreted and output in seconds
 - When using timedeltas, you should remember that m is for month and M is for minute
+- When writing time, remember to use 24-hour clock
 - `help` is a command
 
 ### Dependencies
@@ -48,7 +49,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ### operators
 
-`dte '2019 June 27 + 9y > 2000 Jan 01'` - returns `True`
+`dte '2018 Jan 28 + 3y > 2021 Jan 26'` - returns `True`
 
 ### delta declaration and operations
 `dte 1d` - declares a one day timedelta
