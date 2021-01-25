@@ -1,7 +1,6 @@
 # Date Time Expression
 
 ![PyPI](https://img.shields.io/pypi/v/dte)
-
 ![Travis (.com)](https://img.shields.io/travis/com/mvrozanti/dte)
 
 `dte` is a WIP date-time language with focus on broad interpretation and simplicity.
@@ -34,7 +33,7 @@ For general use just keep in mind:
 
 `dte next tue` - returns next tuesday's date
 
-`dte 1611193453.dow` - returns `wednesday`
+`dte 1611193453.dow` - returns `wednesday` in UTC-03:00
 
 ### the `in` keyword
 
