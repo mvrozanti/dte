@@ -8,6 +8,8 @@ python:
 - '3.9'
 matrix:
   allow_failures:
+    - python: '3.4'
+    - python: '3.5'
     - os: osx
 os:
   - linux
