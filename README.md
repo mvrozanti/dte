@@ -2,6 +2,8 @@
 
 ![PyPI](https://img.shields.io/pypi/v/dte)
 
+![Travis (.com)](https://img.shields.io/travis/com/mvrozanti/dte)
+
 `dte` is a WIP date-time language with focus on broad interpretation and simplicity.
 
 If you don't think it's intuitive, it's probably not finished.
