@@ -19,6 +19,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 - Dates are always interpreted with highest units appearing before, e.g.: `%Y-%m-%d` or `%Y %b %d` formats, although the unit separator doesn't have to be "-" for the former
 - Unix timestamps are both interpreted and output in seconds
+- When using timedeltas, you should remember that m is for month and M is for minute
 - `help` is a command
 
 ### Dependencies
