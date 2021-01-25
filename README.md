@@ -26,12 +26,21 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### Dependencies
 - [dateutil](https://github.com/dateutil/dateutil), which handles month and year's complex operations
 - [ply](https://github.com/dabeaz/ply), which is a python implementation of lex and yacc
-- [appdirs](https://github.com/ActiveState/appdirs), for reading config files
+- [appdirs](https://github.com/ActiveState/appdirs), for reading config file in a cross-platform manner
 
 ## Examples
 
-### date difference
-`dte 1957-12-26 - today`
+### date and difference
+`dte 1957-12-26 - today in days` - returns -23041.0
+
+### time and difference
+`dte 12h:00 AM + 4h` - returns 16:00:00 
+
+`dte '12h:00 AM == 12h:00 PM'` - returns True
+
+`dte 23h:23` - returns 23:23:00
+
+`dte 23M:23` - returns 00:23:23
 
 ### week days
 `dte monday` - returns the closest weekday date
@@ -50,7 +59,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ### operators
 
-`dte '2018 Jan 28 + 3y > 2021 Jan 26'` - returns `True`
+`dte '2020 Jan 27 + 1y  == 2021 Jan 26'` - returns `True`
 
 ### delta declaration and operations
 `dte 1d` - declares a one day timedelta
