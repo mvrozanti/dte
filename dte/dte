@@ -21,7 +21,8 @@ def read_write_get_config():
     dte_config_dir = config_dir + '/dte'
     dte_config_file = dte_config_dir + '/config.json'
     default_config = { 
-            'timestamp_unit': 'seconds' 
+            'timestamp_unit': 'seconds',
+            'datetime_output_format': 'ISO8601' 
             }
     if not op.exists(dte_config_dir):
         os.mkdir(dte_config_dir)
@@ -30,10 +31,11 @@ def read_write_get_config():
         try:
             config_dict = json.load(open(dte_config_file))
         except Exception as e:
-            print('Configuration file is malformed.\nFalling back to default configuration', file=sys.stderr)
+            print('Configuration file is malformed.\n'+\
+                    'Falling back to default configuration', file=sys.stderr)
             config_dict = default_config
     else:
-        json.dump(default_config, open(dte_config_file, 'w'))
+        json.dump(default_config, open(dte_config_file, 'w'), indent=4)
         config_dict = default_config
     return config_dict
 
@@ -243,11 +245,7 @@ def t_DATETIME(t):
     else:
         M,S = [replace('[hhMsS]', '', time_unit) for time_unit in time if time_unit]
         le_time = datetime.strptime(f'{M}:{S}', '%M:%S').time()
-
-    if not date_str:
-        t.value = le_time
-    else:
-        t.value = datetime.combine(date,le_time)
+    t.value = le_time if not date_str else datetime.combine(date,le_time)
     return t
 
 UNITS_STR = 'sSMhHdDwWmyY'
@@ -357,7 +355,7 @@ def t_newline(t):
     t.lexer.lineno += t.value.count('\n')
 
 def t_error(t):
-    print(f'illegal character {t.value[0]!r}')
+    print(f'illegal character {t.value[0]!r}',file=stderr)
     t.lexer.skip(1)
 
 import ply.lex as lex
@@ -469,7 +467,10 @@ def p_statement_expr(p):
     if type(p[1]) is Weekday:
         p[1] = get_closest_week_day(str(p[1]))
     if p[1] is not None:
-        print(normalize(p[1]))
+        if config.datetime_output_format != 'ISO8601':
+            print(normalize(p[1]).strftime(config.datetime_output_format))
+        else:
+            print(normalize(p[1]))
         names['_'] = p[1]
 
 def time2timedelta(n):

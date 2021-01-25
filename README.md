@@ -71,6 +71,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ```
 {
   "timestamp_unit": "<seconds|milliseconds>"
+  "datetime_output_format": "<ISO8601|<format>>"
 }
 ```
 
@@ -91,8 +92,8 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
   - [ ] `last friday in April 2014`
 - [ ] format(timepoint, fmt) (in keyword)units given current time field
 - [ ] add option
-  - [ ] to use locale or custom formats for i/o
-  - [ ] to set unix timestamp format (seconds, millis, etc)
+  - [ ] to use locale and custom formats for i/o
+  - [x] to set unix timestamp format (seconds, millis, etc)
 - [ ] add tab-completion for:
   - [ ] months
   - [ ] units given current time field or second hand of `in` keyword
