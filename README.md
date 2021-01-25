@@ -10,17 +10,20 @@ If you don't think it's intuitive, it's probably not finished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
-## Install
+## How to use & What to know
+
+### Install
 
 `pip install dte`
 
-## How to use
-For general use just keep in mind:
 
 - Dates are always interpreted with highest units appearing before, e.g.: `%Y-%m-%d` or `%Y %b %d` formats, although the unit separator doesn't have to be "-" for the former
-- Month and year's complex operations are handled by [dateutil](https://github.com/dateutil/dateutil) module
 - Unix timestamps are both interpreted and output in seconds
 - `help` is a command
+
+### Dependencies
+- [dateutil](https://github.com/dateutil/dateutil), which handle month and year's complex operations
+- [ply](https://github.com/dabeaz/ply), which is a python implementation of lex and yacc
 
 ## Examples
 
