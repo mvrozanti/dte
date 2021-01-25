@@ -47,7 +47,7 @@ test_expectancy = {
         'help'                        : lambda r: len(r) > 1500,
         '1957-12-26 - t'              : lambda r: re.match(DELTA_FORMAT, r),
         '1957-12-26 22:22:22 - t'     : lambda r: re.match(DELTA_FORMAT, r),
-        '1957-12-26 22:22:22 in unix' : lambda r: r == '-379118258',
+        '1957-12-26 22:22:22 in unix' : lambda r: -379118258 - 86400 < int(r) < -379118258 + 86400,
         '1958-05-14 - 1958-05-16'     : lambda r: r == '-2 days, 0:00:00',
         '1996.04.28'                  : lambda r: r == '1996-04-28',
         '1d in hours'                 : lambda r: r == '24.0',
