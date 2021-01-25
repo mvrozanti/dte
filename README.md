@@ -6,7 +6,7 @@
 
 `dte` is a WIP date-time processing language with focus on broad interpretation and simplicity.
 
-If you don't think it's intuitive, it's probably not finished.
+If you don't think it's intuitive, it's most likely unfinished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
@@ -17,15 +17,16 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 `pip install dte`
 
 
+### Conventions
 - Dates are always interpreted with highest units appearing before, e.g.: `%Y-%m-%d` or `%Y %b %d` formats, although the unit separator doesn't have to be "-" for the former
 - Unix timestamps are both interpreted and output in seconds
 - When using timedeltas, you should remember that m is for month and M is for minute
 - When writing time, remember to use 24-hour clock
-- `help` is a command
 
 ### Dependencies
-- [dateutil](https://github.com/dateutil/dateutil), which handle month and year's complex operations
+- [dateutil](https://github.com/dateutil/dateutil), which handles month and year's complex operations
 - [ply](https://github.com/dabeaz/ply), which is a python implementation of lex and yacc
+- [appdirs](https://github.com/ActiveState/appdirs), for reading config files
 
 ## Examples
 
@@ -60,6 +61,19 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 `dte -100.5d` - accepts negative and/or floating point values
 
+### and in case you need it
+`dte help` - prints a detailed manual
+
+## Configuration File
+
+`dte` tries to read a `config.json` file under config directory (`~/.config/dte/` on Linux). In it you can set the following options:
+
+```
+{
+  "timestamp_unit": "<seconds|milliseconds>"
+}
+```
+
 ## To do
 - [x] floating-point time units
 - [x] subtract delta from date
@@ -76,10 +90,12 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
   - [ ] `last friday in April`
   - [ ] `last friday in April 2014`
 - [ ] format(timepoint, fmt) (in keyword)units given current time field
-- [ ] add option to use locale or custom formats for i/o
+- [ ] add option
+  - [ ] to use locale or custom formats for i/o
+  - [ ] to set unix timestamp format (seconds, millis, etc)
 - [ ] add tab-completion for:
   - [ ] months
   - [ ] units given current time field or second hand of `in` keyword
-- [ ] continuous integration
+- [x] continuous integration
 - [x] parse month & abbrev
 - [x] parse weekday & abbrev

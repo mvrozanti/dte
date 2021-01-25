@@ -3,15 +3,46 @@ from collections import OrderedDict
 from datetime import datetime, date, timedelta, time
 from dateutil.relativedelta import relativedelta
 from ply.lex import TOKEN
+from time import sleep,mktime
+from types import SimpleNamespace as Namespace
+import appdirs
 import calendar
 import code
+import json
 import locale
+import os
+import os.path as op
 import re
 import sys
-from time import sleep,mktime
 import types
 
+def read_write_get_config():
+    config_dir = appdirs.user_config_dir()
+    dte_config_dir = config_dir + '/dte'
+    dte_config_file = dte_config_dir + '/config.json'
+    default_config = { 
+            'timestamp_unit': 'seconds' 
+            }
+    if not op.exists(dte_config_dir):
+        os.mkdir(dte_config_dir)
+
+    if op.exists(dte_config_file):
+        try:
+            config_dict = json.load(open(dte_config_file))
+        except Exception as e:
+            print('Configuration file is malformed.\nFalling back to default configuration', file=sys.stderr)
+            config_dict = default_config
+    else:
+        json.dump(default_config, open(dte_config_file, 'w'))
+        config_dict = default_config
+    return config_dict
+
+config = Namespace(**read_write_get_config())
+
 HELP = '''
+SYNTAX
+
+
 OBJECTS
 
     DELTA  
@@ -77,6 +108,11 @@ FUNCTIONS / ATTRIBUTES
 dayofweek TIME_POINT : returns weekday for time point
     dow  TIME_POINT  : ⏎
     TIME_POINT.dow   : ⏎
+
+STDIN
+
+       The  standard  input  shall be used only if no arguments are specified.
+
 '''
 
 n = None
@@ -310,7 +346,7 @@ def parse_units(units_vals):
 
 def t_TIMESTAMP(t):
     r'\d+'
-    t.value = datetime.fromtimestamp(int(t.value))
+    t.value = datetime.fromtimestamp(int(t.value) if config.timestamp_unit == 'seconds' else int(t.value)/1000)
     return t
 
 t_ignore = ' \t'
