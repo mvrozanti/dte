@@ -1,0 +1,16 @@
+language: python
+python:
+- '3.6'
+- '3.7'
+- '3.8'
+- '3.9'
+os:
+  - linux
+  - osx
+  - windows
+before_script:
+  - chmod +x dte/dte
+install:
+- pip install -r requirements.txt
+script:
+- pytest test/test.py && echo Tests passed.
