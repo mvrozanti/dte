@@ -3,10 +3,9 @@ from collections import OrderedDict
 from datetime import datetime, date, timedelta, time
 from dateutil.relativedelta import relativedelta
 from ply.lex import TOKEN
-from time import sleep,mktime
+from time import sleep, mktime
 from types import SimpleNamespace as Namespace
 import appdirs
-import calendar
 import code
 import json
 import locale
@@ -30,7 +29,7 @@ def read_write_get_config():
     if op.exists(dte_config_file):
         try:
             config_dict = json.load(open(dte_config_file))
-        except Exception as e:
+        except Exception:
             print('Configuration file is malformed.\n'+\
                     'Falling back to default configuration', file=sys.stderr)
             config_dict = default_config
@@ -199,11 +198,11 @@ def is_reserved(k):
         if re.match(r, k):
             return True
 
-REGEX_DOY = r'(?:\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+\s+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + ')\s+\d+)'
+REGEX_DOY = r'(?:\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+\s+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + r')\s+\d+)'
 REGEX_0_23 = r'(?:2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'(?:[0-5]?[0-9])'
 
-DATETIME_REGEX = f'(?:({REGEX_DOY})\s?|(?:({REGEX_0_59})([hHM])?):(?:({REGEX_0_59})([MsS])?)(?::(?:({REGEX_0_59})([sS])?))?(?:\s+([aA]|[pP])[mM])?)' + '{1,2}'
+DATETIME_REGEX = f'(?:({REGEX_DOY})'+r'\s'+f'?|(?:({REGEX_0_59})([hHM])?):(?:({REGEX_0_59})([MsS])?)(?::(?:({REGEX_0_59})([sS])?))?(?:'+r'\s+([aA]|[pP])[mM])?)' + '{1,2}'
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
     date_str,\
@@ -239,7 +238,7 @@ def t_DATETIME(t):
                 except:
                     raise Exception(f'Invalid syntax: {date_str}')
         else:
-            y,m,d = replace('\D', '-', date_str).split('-')
+            y,m,d = replace(r'\D', '-', date_str).split('-')
             date = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
         if (first_val,second_val,third_val) == (None,None,None):
             t.value = date
@@ -377,7 +376,7 @@ def t_newline(t):
     t.lexer.lineno += t.value.count('\n')
 
 def t_error(t):
-    print(f'illegal character {t.value[0]!r}',file=stderr)
+    print(f'illegal character {t.value[0]!r}',file=sys.stderr)
     t.lexer.skip(1)
 
 import ply.lex as lex
@@ -473,6 +472,7 @@ def p_statement_invalid_assignment(p):
 
 def p_statement_assign(p):
     'statement : NAME EQUALS expression'
+    global n
     n = None
     if is_reserved(p[1]):
         raise Exception('can\'t use reserved keyword')

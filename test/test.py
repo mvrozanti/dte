@@ -67,10 +67,8 @@ test_expectancy = {
         '22h:22'                                : lambda r: r == '22:22:00',
         '22:22:22'                              : lambda r: r == '22:22:22',
         '22h:22M:22'                            : lambda r: r == '22:22:22',
-        '22h:22:22'                             : lambda r: r == '22:22:22',
         '22h:22M:22s'                           : lambda r: r == '22:22:22',
         '22:22M:22s'                            : lambda r: r == '22:22:22',
-        '22:22:22s'                             : lambda r: r == '22:22:22',
         '22h:22:22s'                            : lambda r: r == '22:22:22',
         '22:22:22s'                             : lambda r: r == '22:22:22',
         '22M:22 + 4h'                           : lambda r: r == '4:22:22',
@@ -107,15 +105,9 @@ class Capturing(list):
         del self._stringio    # free up some memory
         sys.stdout = self._stdout
 
-def parse(test):
-    with Capturing() as output:
-        yacc.parse(test)
-    return output
-
 class Tester(unittest.TestCase):
 
     def test_stuff(self):
-        test_outputs = []
         dte_location = os.path.dirname(os.path.realpath(__file__)) \
                                  + op.sep + '..'   \
                                  + op.sep + 'dte' \
