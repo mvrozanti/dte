@@ -198,7 +198,7 @@ def is_reserved(k):
         if re.match(r, k):
             return True
 
-REGEX_DOY = r'(?:\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+\s+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + r')\s+\d+)'
+REGEX_DOY = r'(?:\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + r')[\W\s]+\d+)'
 REGEX_0_23 = r'(?:2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'(?:[0-5]?[0-9])'
 
@@ -229,7 +229,7 @@ def t_DATETIME(t):
 
     if date_str:
         if any(month in date_str for month in months_abbrev):
-            y,b,d = date_str.split(' ')
+            y,b,d = replace('[\W\s]+', ' ', date_str).split(' ')
             try:
                 date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%b-%d')
             except:

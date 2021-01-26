@@ -73,6 +73,7 @@ test_expectancy = {
         '22:22:22s'                             : lambda r: r == '22:22:22',
         '22M:22 + 4h'                           : lambda r: r == '4:22:22',
         '2020 Jan 27 + 1y  == 2021 Jan 26'      : lambda r: eval(r),
+        '2020-Jan-27'                           : lambda r: r == '2020-01-27',
         '2 < 1'                                 : lambda r: not eval(r),
         '12h:00 pm != 12h:00 am'                : lambda r: eval(r),
         '22:22:22'                              : lambda r: re.match(HMS_FORMAT, r),
