@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 from collections import OrderedDict
 from datetime import datetime, date, timedelta, time
-from dateutil.relativedelta import relativedelta
+import dateutil
+from dateutil.relativedelta import relativedelta,MO,TU,WE,TH,FR,SA,SU
 from ply.lex import TOKEN
 from time import sleep, mktime
 from types import SimpleNamespace as Namespace
@@ -124,6 +125,7 @@ days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sun
 months = ['January', 'February', 'March', 'April', 'May', 'June', \
             'July', 'August', 'September', 'October', 'November', 'December']
 days_abbrev = [d[:3] for d in days]
+days_abbrev_max = [d[:2] for d in days]
 months_abbrev = [m[:3] for m in months]
 
 tokens = (
@@ -138,8 +140,10 @@ tokens = (
     'IN',
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
+    'INTEGER',
+    'YEAR',
+    'MONTH',
     'DELTA', 
-    'TIMESTAMP', 
     'WEEKDAY', 
     'PERIOD', 
     'SEMICOLON', 
@@ -189,6 +193,7 @@ reserved = [
             r'seconds|minutes|hours|days|weeks',
             '|'.join(days),
             '|'.join(days_abbrev),
+            '|'.join(days_abbrev_max),
             '|'.join(months),
             '|'.join(months_abbrev),
         ]
@@ -258,7 +263,8 @@ def t_DATETIME(t):
                         if ampm.lower() == 'p':
                             first_val = f'{(int(first_val)+12)}' 
                     else:
-                        first_val = 0 if ampm.lower() == 'a' else '12'
+                        if ampm.lower() == 'a':
+                            first_val = 0
 
     H_or_M,M_or_S,S = (first_val,second_val,third_val)
     if is_HMS:
@@ -291,7 +297,7 @@ def t_DELTA(t):
 
 t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
 
-@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev))
+@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_abbrev_max))
 def t_WEEKDAY(t):
     t.value = Weekday(t.value)
     return t
@@ -363,10 +369,15 @@ def parse_units(units_vals):
                 parsed += timedelta(**{long_name: units_vals[unit]})
     return parsed
 
-def t_TIMESTAMP(t):
+def t_INTEGER(t):
     r'\d+'
-    t.value = datetime.fromtimestamp(int(t.value) if config.timestamp_unit == 'seconds' else int(t.value)/1000)
+    t.value = int(t.value)
     return t
+
+# def t_TIMESTAMP(t):
+#     r'\d+'
+#     t.value = datetime.fromtimestamp(int(t.value) if config.timestamp_unit == 'seconds' else int(t.value)/1000)
+#     return t
 
 t_ignore = ' \t'
 t_ignore_COMMENT = r'\#.*'
@@ -488,6 +499,10 @@ def p_statement_expr(p):
     'statement : expression'
     if type(p[1]) is Weekday:
         p[1] = get_closest_week_day(str(p[1]))
+    if type(p[1]) == dateutil._common.weekday:
+        p[1] = (datetime.now() - relativedelta(weekday=p[1])).date()
+    if type(p[1]) == relativedelta:
+        p[1] = (datetime.now() + p[1]).date()
     if p[1] is not None:
         if config.datetime_output_format != 'ISO8601':
             print(normalize(p[1]).strftime(config.datetime_output_format))
@@ -502,18 +517,26 @@ def p_expression_binop(p):
     '''expression : expression PLUS expression
                   | expression MINUS expression
                   '''
-
     if type(p[1]) == time and type(p[3]) == timedelta:
         p[1] = time2timedelta(p[1])
 
     if type(p[3]) == time and type(p[1]) == timedelta:
         p[3] = time2timedelta(p[3])
 
-    if type(p[1]) == date and type(p[3]) == timedelta:
+    if type(p[1]) == date and type(p[3]) == relativedelta:
         p[1] = datetime.combine(p[1], datetime.min.time())
 
-    if type(p[3]) == date and type(p[1]) == timedelta:
+    if type(p[3]) == date and type(p[1]) == relativedelta:
         p[3] = datetime.combine(p[3], datetime.min.time())
+
+    if type(p[1]) == datetime and type(p[3]) == relativedelta:
+        p[3] = datetime.now() - p[3]
+
+    if type(p[3]) == datetime and type(p[1]) == relativedelta:
+        p[1] = datetime.now() - p[1]
+
+    if type(p[1]) == date and type(p[3]) == timedelta:
+        p[1] = datetime.combine(p[1], datetime.min.time())
 
     if type(p[1]) == date and type(p[3]) == datetime:
         p[1] = datetime.combine(p[1], datetime.min.time())
@@ -577,9 +600,23 @@ def p_expression_funcall(p):
     except:
         raise Exception("Undefined name '%s'" % p[1])
 
-def p_expression_cyclic_op(p):
-    'expression : CYCLIC_OP WEEKDAY'
-    p[0] = cyclic(p[2], 1 if p[1] == 'next' else -1)
+def p_expression_relativedelta(p):
+    '''expression : relativedelta IN MONTH
+                  | relativedelta 
+                  '''
+    if len(p) > 2:
+        code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+    p[0] = p[1]
+
+def p_relativedelta_cyclic_op(p):
+    'relativedelta : CYCLIC_OP WEEKDAY'
+    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
+    weekday = None
+    for d in days:
+        if d.lower() == str(p[2]).lower():
+            weekday = relativedelta_days[days.index(d)]
+            break
+    p[0] = relativedelta(weekday=weekday(1 if p[1] == 'next' else -1))
 
 def p_expression_point_in_unit(p):
     'expression : expression IN UNIT'
@@ -607,12 +644,18 @@ def p_expression_generic(p):
                   '''
     p[0] = p[1]
 
+def p_timestamp_integer(p):
+    'timestamp : INTEGER'
+    p[0] = datetime.fromtimestamp(int(p[1]) if config.timestamp_unit == 'seconds' else int(p[1])/1000)
+
 def p_point(p):
     '''point : N
              | T
-             | TIMESTAMP
+             | timestamp
              | DATETIME
              | TM
+             | MONTH
+             | YEAR
              | WEEKDAY
              | YD
              '''

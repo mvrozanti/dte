@@ -16,12 +16,10 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 `pip install dte`
 
-
 ### Conventions
 - Dates are always interpreted with highest units appearing before, e.g.: `%Y-%m-%d` or `%Y %b %d` formats, although the unit separator doesn't have to be "-" for the former
 - Unix timestamps are both interpreted and output in seconds
 - When using timedeltas, you should remember that m is for month and M is for minute
-- When writing time, remember to use 24-hour clock
 
 ### Dependencies
 - [dateutil](https://github.com/dateutil/dateutil), which handles month and year's complex operations
@@ -36,7 +34,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### time and difference
 `dte 12h:00 AM + 4h` - returns 16:00:00 
 
-`dte '12h:00 AM == 12h:00 PM'` - returns True
+`dte '12h:00 AM != 12h:00 PM'` - returns True
 
 `dte 23h:23` - returns 23:23:00
 
@@ -94,12 +92,14 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [x] wait(x)
 - [x] timestamp object
 - [x] next/last(weekday)
+- [ ] add basedate point
+- [ ] add `6 pm`
 - [x] in keyword
-  - [ ] add geolocation? `18H:00 in England`?
-  - [ ] `last friday in 2014`
-  - [ ] `last friday in April`
-  - [ ] `last friday in April 2014`
-- [ ] format(timepoint, fmt) (in keyword)units given current time field
+  - [ ] `last friday in 2014` - extremity
+  - [ ] `last friday in April` - extremity
+  - [ ] `last friday in next month` - extremity
+  - [ ] `last friday in April 2014` - extremity
+- [ ] format(timepoint, fmt) (in keyword) units given current time field
 - [ ] add option
   - [ ] to use locale and custom formats for i/o
   - [x] to set unix timestamp format (seconds, millis, etc)
