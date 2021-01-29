@@ -191,9 +191,9 @@ reserved = [
             r'next|last',
             r'yd|yesterday',
             r'seconds|minutes|hours|days|weeks',
-            '|'.join(days),
-            '|'.join(days_abbrev),
             '|'.join(days_abbrev_max),
+            '|'.join(days_abbrev),
+            '|'.join(days),
             '|'.join(months),
             '|'.join(months_abbrev),
         ]
@@ -234,7 +234,7 @@ def t_DATETIME(t):
 
     if date_str:
         if any(month in date_str for month in months_abbrev):
-            y,b,d = replace('[\W\s]+', ' ', date_str).split(' ')
+            y,b,d = replace(r'[\W\s]+', ' ', date_str).split(' ')
             try:
                 date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%b-%d')
             except:
@@ -299,7 +299,7 @@ t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_
 
 @TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_abbrev_max))
 def t_WEEKDAY(t):
-    t.value = Weekday(t.value)
+    t.value = t.value
     return t
 
 @TOKEN(r'(?i)' + '|'.join(months) + '|' + '|'.join(months_abbrev))
@@ -308,7 +308,7 @@ def t_MONTH(t):
     return t
 
 def t_CYCLIC_OP(t):
-    r'(?i)(next|last)'
+    r'(?i)(next|last|first)'
     return t
 
 def t_UNIT(t):
@@ -373,11 +373,6 @@ def t_INTEGER(t):
     r'\d+'
     t.value = int(t.value)
     return t
-
-# def t_TIMESTAMP(t):
-#     r'\d+'
-#     t.value = datetime.fromtimestamp(int(t.value) if config.timestamp_unit == 'seconds' else int(t.value)/1000)
-#     return t
 
 t_ignore = ' \t'
 t_ignore_COMMENT = r'\#.*'
@@ -600,23 +595,49 @@ def p_expression_funcall(p):
     except:
         raise Exception("Undefined name '%s'" % p[1])
 
+def get_extremity_weekday_of_year(direction, weekday, year):
+    if direction == 'last':
+        target = date(year+1,1,1) - timedelta(days=1)
+    elif direction == 'first':
+        target = date(year,1,1)
+    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
+    weekday_ix = [wd.lower() for wd in days].index(weekday)
+    while target.weekday() != weekday_ix:
+        if direction == 'first':
+            target += timedelta(days=1)
+        elif direction == 'last':
+            target -= timedelta(days=1)
+    return target
+
+def common_weekday_to_string(common_weekday):
+    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
+    for ix,d in enumerate(relativedelta_days):
+        if d == common_weekday:
+            return days[ix]
+
+def string_to_common_weekday(weekday):
+    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
+    for d in days:
+        if d.lower() == weekday.lower():
+            return relativedelta_days[days.index(d)]
+
 def p_expression_relativedelta(p):
     '''expression : relativedelta IN MONTH
+                  | relativedelta IN INTEGER
                   | relativedelta 
                   '''
+    direction, weekday = p[1]
     if len(p) > 2:
-        code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
-    p[0] = p[1]
+        year = int(p[3])
+        extremity = get_extremity_weekday_of_year(direction, weekday, year)
+        p[0] = extremity
+    else:
+        p[0] = (datetime.now() + \
+                relativedelta(weekday=string_to_common_weekday(weekday)(1 if direction  == 'next' else -1))).date()
 
 def p_relativedelta_cyclic_op(p):
     'relativedelta : CYCLIC_OP WEEKDAY'
-    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
-    weekday = None
-    for d in days:
-        if d.lower() == str(p[2]).lower():
-            weekday = relativedelta_days[days.index(d)]
-            break
-    p[0] = relativedelta(weekday=weekday(1 if p[1] == 'next' else -1))
+    p[0] = (p[1],p[2])
 
 def p_expression_point_in_unit(p):
     'expression : expression IN UNIT'

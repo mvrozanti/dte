@@ -49,6 +49,11 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 `dte 1611193453.dow` - returns `wednesday` in UTC-03:00
 
+### extremities
+`dte last sunday in 2021` - returns 2021-12-26
+
+`dte first sunday in 2021` - returns 2021-01-03
+
 ### the `in` keyword
 
 `dte 1d in hours` - returns the amount of hours in a day
@@ -95,10 +100,10 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [ ] add basedate point
 - [ ] add `6 pm`
 - [x] in keyword
-  - [ ] `last friday in 2014` - extremity
-  - [ ] `last friday in April` - extremity
-  - [ ] `last friday in next month` - extremity
-  - [ ] `last friday in April 2014` - extremity
+  - [x] `first/last friday in 2014` - extremity
+  - [ ] `first/last friday in April` - extremity
+  - [ ] `first/last friday in next month` - extremity
+  - [ ] `first/last friday in April 2014` - extremity
 - [ ] format(timepoint, fmt) (in keyword) units given current time field
 - [ ] add option
   - [ ] to use locale and custom formats for i/o
