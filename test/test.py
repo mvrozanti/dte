@@ -18,7 +18,7 @@ YMD_FORMAT = r'^\d{4}-\d{2}-\d{2}$'
 
 HMS_FORMAT = r'^\d+:\d+:\d+$'
 
-DELTA_FORMAT = r'-?\d+ days, \d{1,2}:\d{2}:\d{2}'
+DELTA_FORMAT = r'-?\d+ days?, \d{1,2}:\d{2}:\d{2}'
 
 test_expectancy = {
         '(T-1d).dow'                            : lambda r: r in days,

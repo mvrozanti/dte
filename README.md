@@ -22,9 +22,9 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - When using timedeltas, you should remember that m is for month and M is for minute
 
 ### Dependencies
-- [dateutil](https://github.com/dateutil/dateutil), which handles month and year's complex operations
-- [ply](https://github.com/dabeaz/ply), which is a python implementation of lex and yacc
-- [appdirs](https://github.com/ActiveState/appdirs), for reading config file in a cross-platform manner
+- [dateutil](https://github.com/dateutil/dateutil) handles month and year's complex operations
+- [ply](https://github.com/dabeaz/ply)is a pure-Python implementation of the popular compiler construction tools lex and yacc 
+- [appdirs](https://github.com/ActiveState/appdirs) for reading config file in a cross-platform manner
 
 ## Examples
 
@@ -33,8 +33,6 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ### time and difference
 `dte 12h:00 AM + 4h` - returns 16:00:00 
-
-`dte '12h:00 AM != 12h:00 PM'` - returns True
 
 `dte 23h:23` - returns 23:23:00
 
@@ -49,20 +47,23 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 `dte 1611193453.dow` - returns `wednesday` in UTC-03:00
 
-### extremities
-`dte last sunday in 2021` - returns 2021-12-26
-
-`dte first sunday in 2021` - returns 2021-01-03
-
 ### the `in` keyword
 
 `dte 1d in hours` - returns the amount of hours in a day
 
 `dte 1959 Jan 26 in unix` - returns the unix timestamp for the date
 
+### extremities
+
+`dte last sunday in 2021` - returns 2021-12-26
+
+`dte first sunday in 2021` - returns 2021-01-03
+
 ### operators
 
 `dte '2020 Jan 27 + 1y  == 2021 Jan 26'` - returns `True`
+
+`dte '12h:00 AM != 12h:00 PM'` - returns True
 
 ### delta declaration and operations
 `dte 1d` - declares a one day timedelta

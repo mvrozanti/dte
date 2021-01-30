@@ -121,6 +121,7 @@ n = None
 
 replace = lambda replacee,replacement,string: re.sub(replacee, replacement, string)
 
+relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 months = ['January', 'February', 'March', 'April', 'May', 'June', \
             'July', 'August', 'September', 'October', 'November', 'December']
@@ -221,7 +222,7 @@ def t_DATETIME(t):
     if t.value.count(':') == 1 and \
             not first_unit and not second_unit \
             and not third_unit and not third_val:
-            raise Exception(f'did you mean {first_val}h:{second_val} or '+\
+            raise Exception(f'Did you mean {first_val}h:{second_val} or '+\
                                           '{first_val}M:{second_val}?')
 
     if ampm is not None and \
@@ -230,7 +231,7 @@ def t_DATETIME(t):
                 second_unit == 'M' or \
                 third_val) and \
                 int(first_val ) > 12:
-                    raise Exception('conflicting 24-hour clock with 12-hour clock')
+                    raise Exception('Conflicting 24-hour clock with 12-hour clock')
 
     if date_str:
         if any(month in date_str for month in months_abbrev):
@@ -382,7 +383,7 @@ def t_newline(t):
     t.lexer.lineno += t.value.count('\n')
 
 def t_error(t):
-    print(f'illegal character {t.value[0]!r}',file=sys.stderr)
+    print(f'Illegal character {t.value[0]!r}',file=sys.stderr)
     t.lexer.skip(1)
 
 import ply.lex as lex
@@ -395,7 +396,7 @@ def wait(t):
     elif isinstance(t, timedelta):
         delta = t
     else:
-        raise Exception('wait accepts a time point or time delta only')
+        raise Exception('Wait accepts a time point or time delta only')
     if delta > timedelta(0):
         sleep(delta.total_seconds())
 
@@ -421,7 +422,7 @@ def dow(t):
     elif type(t) == timedelta:
         return days[(datetime.now()+t).weekday()]
     else:
-        raise Exception('can\'t get day of week of object of type' + str(type(t)))
+        raise Exception('Can\'t get day of week of object of type' + str(type(t)))
 
 def is_000(obj):
     return obj.hour == obj.minute == obj.second == 0 if type(obj) == datetime \
@@ -474,14 +475,14 @@ def p_statements(p):
 
 def p_statement_invalid_assignment(p):
     'statement : WEEKDAY EQUALS expression'
-    raise Exception('can\'t assign expression to weekday')
+    raise Exception('Can\'t assign expression to weekday')
 
 def p_statement_assign(p):
     'statement : NAME EQUALS expression'
     global n
     n = None
     if is_reserved(p[1]):
-        raise Exception('can\'t use reserved keyword')
+        raise Exception('Can\'t use reserved keyword')
     names[p[1]] = p[3]
 
 def normalize(t):
@@ -539,8 +540,11 @@ def p_expression_binop(p):
     if type(p[3]) == date and type(p[1]) == datetime:
         p[3] = datetime.combine(p[3], datetime.min.time())
 
+    if type(p[1]) == type(p[3]) == date and p[2] == '+':
+        raise Exception(f'Can\'t add two dates: {p[1]} + {p[3]}')
+
     if p[1] is None or p[3] is None:
-        raise Exception(f'in {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
+        raise Exception(f'In {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
 
     if type(p[1]) == Weekday:
         p[1] = get_closest_week_day(str(p[1]))
@@ -600,7 +604,6 @@ def get_extremity_weekday_of_year(direction, weekday, year):
         target = date(year+1,1,1) - timedelta(days=1)
     elif direction == 'first':
         target = date(year,1,1)
-    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
     weekday_ix = [wd.lower() for wd in days].index(weekday)
     while target.weekday() != weekday_ix:
         if direction == 'first':
@@ -610,16 +613,14 @@ def get_extremity_weekday_of_year(direction, weekday, year):
     return target
 
 def common_weekday_to_string(common_weekday):
-    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
     for ix,d in enumerate(relativedelta_days):
         if d == common_weekday:
             return days[ix]
 
 def string_to_common_weekday(weekday):
-    relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
-    for d in days:
+    for ix,d in enumerate(days):
         if d.lower() == weekday.lower():
-            return relativedelta_days[days.index(d)]
+            return relativedelta_days[ix]
 
 def p_expression_relativedelta(p):
     '''expression : relativedelta IN MONTH
@@ -631,9 +632,12 @@ def p_expression_relativedelta(p):
         year = int(p[3])
         extremity = get_extremity_weekday_of_year(direction, weekday, year)
         p[0] = extremity
-    else:
+    elif direction in ['next', 'last']:
+        leap = 1 if direction  == 'next' else -1
         p[0] = (datetime.now() + \
-                relativedelta(weekday=string_to_common_weekday(weekday)(1 if direction  == 'next' else -1))).date()
+                relativedelta(weekday=string_to_common_weekday(weekday)(leap))).date()
+    else:
+        raise Exception(f'Invalid syntax: {direction} {weekday}')
 
 def p_relativedelta_cyclic_op(p):
     'relativedelta : CYCLIC_OP WEEKDAY'
@@ -643,7 +647,7 @@ def p_expression_point_in_unit(p):
     'expression : expression IN UNIT'
     to_unix = p[3] == 'unix'
     if type(p[1]) == timedelta and to_unix:
-        raise Exception('can\'t convert timedelta to unix timestamp')
+        raise Exception('Can\'t convert timedelta to unix timestamp')
     if to_unix:
         p[0] = int(mktime(p[1].timetuple()))
     if p[3].lower() in unit_map.values():
