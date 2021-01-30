@@ -139,6 +139,7 @@ tokens = (
     'UNIT',
     'CYCLIC_OP',
     'IN',
+    'UNTIL',
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
     'INTEGER',
@@ -169,6 +170,7 @@ t_LE        = r'<='
 t_EQ        = r'=='
 t_NE        = r'!='
 t_IN        = r'(?i)in'
+t_UNTIL        = r'(?i)until'
 
 unit_map = {
         's': 'seconds',
@@ -186,17 +188,18 @@ unit_map = {
         }
 
 reserved = [
-            r'in',
-            r'n(ow)?',
-            r't(oday)?',
-            r'next|last',
-            r'yd|yesterday',
-            r'seconds|minutes|hours|days|weeks',
-            '|'.join(days_abbrev_max),
-            '|'.join(days_abbrev),
             '|'.join(days),
+            '|'.join(days_abbrev),
+            '|'.join(days_abbrev_max),
             '|'.join(months),
             '|'.join(months_abbrev),
+            r'in',
+            r'n(ow)?',
+            r'next|last',
+            r'seconds|minutes|hours|days|weeks',
+            r't(oday)?',
+            r'until',
+            r'yd|yesterday',
         ]
 
 def is_reserved(k):
@@ -642,6 +645,24 @@ def p_expression_relativedelta(p):
 def p_relativedelta_cyclic_op(p):
     'relativedelta : CYCLIC_OP WEEKDAY'
     p[0] = (p[1],p[2])
+
+def p_expression_unit_until_point(p):
+    'expression : UNIT UNTIL point'
+    if p[1].lower() in unit_map.values():
+        delta = p[3] - datetime.now()
+        total_seconds = delta.total_seconds()
+        if p[1] == 'seconds':
+            p[0] = total_seconds
+        if p[1] == 'minutes':
+            p[0] = total_seconds / 60
+        if p[1] == 'hours':
+            p[0] = total_seconds / 60 / 60
+        if p[1] == 'days':
+            p[0] = total_seconds / 60 / 60 / 24
+        if p[1] == 'weeks':
+            p[0] = total_seconds / 60 / 60 / 24 / 7
+    else:
+        raise Exception('Invalid syntax: {p[1]} {p[2]} {p[3]}')
 
 def p_expression_point_in_unit(p):
     'expression : expression IN UNIT'

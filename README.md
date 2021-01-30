@@ -53,6 +53,10 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 `dte 1959 Jan 26 in unix` - returns the unix timestamp for the date
 
+### the `until` keyword
+
+`dte seconds until 3000 Apr 10` - returns the amount of seconds until date
+
 ### extremities
 
 `dte last sunday in 2021` - returns 2021-12-26
@@ -105,6 +109,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
   - [ ] `first/last friday in April` - extremity
   - [ ] `first/last friday in next month` - extremity
   - [ ] `first/last friday in April 2014` - extremity
+- [x] until keyword
 - [ ] format(timepoint, fmt) (in keyword) units given current time field
 - [ ] add option
   - [ ] to use locale and custom formats for i/o

@@ -91,6 +91,7 @@ test_expectancy = {
         'YD.day'                                : lambda r: re.match(r'\d+', r),
         'n'                                     : lambda r: re.match(ISO_FORMAT, r),
         'next Sunday'                           : lambda r: re.match(YMD_FORMAT, r),
+        'seconds until 3000 Apr 10'             : lambda r: re.match(r'\d+', r),
         'next Sunday != last sunday'            : lambda r: eval(r),
         'last sunday in 2021'                   : lambda r: r == '2021-12-26',
         'first sunday in 2021'                  : lambda r: r == '2021-01-03',
