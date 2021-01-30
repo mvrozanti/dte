@@ -97,7 +97,25 @@ OPERATORS
                  a boolean
 
 KEYWORDS
-            in :  
+            in   : the `in` keyword has two purposes,
+                   interpreting a DELTA object and a unit
+                   and converting the former into the latter
+                   such as:
+
+                   1d3h in seconds
+
+                   it can also convert a point in time to a 
+                   unix timestamp, which can be configured in
+                   seconds or milliseconds using the config
+                   file:
+
+                   1970 Jan 1 in unix
+
+            until: takes a point in time and a unit and shows
+                   the the amount of the unit until the time
+                   point:
+
+                   seconds until 3000 Apr 25
 
 FUNCTIONS / ATTRIBUTES 
               
@@ -754,6 +772,9 @@ def interactive():
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        yacc.parse(' '.join(sys.argv[1:]))
+        if sys.argv[1] in ['-h', '--help']:
+            print(HELP)
+        else:
+            yacc.parse(' '.join(sys.argv[1:]))
     else:
         interactive()
