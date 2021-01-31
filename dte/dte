@@ -422,22 +422,6 @@ def wait(t):
     if delta > timedelta(0):
         sleep(delta.total_seconds())
 
-def last_wd(t):
-    prev_date = datetime.now()
-    for _ in range(7):
-        prev_date += timedelta(days=-1)
-        if days[prev_date.weekday()].lower() == str(t).lower():
-            break
-    return prev_date.date()
-
-def cyclic(t, direction):
-    cyclic_direction = datetime.now()
-    for _ in range(7):
-        cyclic_direction += timedelta(days=direction)
-        if days[cyclic_direction.weekday()].lower() == str(t).lower():
-            break
-    return cyclic_direction.date()
-
 def dow(t):
     if type(t) == date or type(t) == datetime:
         return days[t.weekday()]
@@ -644,6 +628,14 @@ def string_to_common_weekday(weekday):
         if d.lower() == weekday.lower():
             return relativedelta_days[ix]
 
+def cyclic(t, direction):
+    cyclic_direction = datetime.now()
+    for _ in range(7):
+        cyclic_direction += timedelta(days=direction)
+        if days[cyclic_direction.weekday()].lower() == str(t).lower():
+            break
+    return cyclic_direction.date()
+
 def p_expression_relativedelta(p):
     '''expression : relativedelta IN MONTH
                   | relativedelta IN INTEGER
@@ -656,8 +648,9 @@ def p_expression_relativedelta(p):
         p[0] = extremity
     elif direction in ['next', 'last']:
         leap = 1 if direction  == 'next' else -1
-        p[0] = (datetime.now() + \
-                relativedelta(weekday=string_to_common_weekday(weekday)(leap))).date()
+        p[0] = cyclic(weekday, leap)
+        # p[0] = (datetime.now() + \
+        #         relativedelta(weekday=string_to_common_weekday(weekday)(leap))).date()
     else:
         raise Exception(f'Invalid syntax: {direction} {weekday}')
 
