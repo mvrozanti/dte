@@ -22,6 +22,7 @@ def read_write_get_config():
     dte_config_file = dte_config_dir + '/config.json'
     default_config = { 
             'timestamp_unit': 'seconds',
+            'clock': '24',
             'datetime_output_format': 'ISO8601' 
             }
     if not op.exists(dte_config_dir):
@@ -30,7 +31,14 @@ def read_write_get_config():
     if op.exists(dte_config_file):
         try:
             config_dict = json.load(open(dte_config_file))
-        except Exception:
+            updated = False
+            for k,v in default_config.items():
+                if not k in config_dict:
+                    config_dict.update({k:v})
+                    updated = True
+            if updated:
+                json.dump(config_dict, open(dte_config_file, 'w'), indent=4)
+        except Exception as e:
             print('Configuration file is malformed.\n'+\
                     'Falling back to default configuration', file=sys.stderr)
             config_dict = default_config
@@ -225,15 +233,25 @@ def is_reserved(k):
         if re.match(r, k):
             return True
 
-REGEX_DOY = r'(?:\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + r')[\W\s]+\d+)'
-REGEX_0_23 = r'(?:2[0-3]|1?[0-9]|00)'
-REGEX_0_59 = r'(?:[0-5]?[0-9])'
+REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + r')[\W\s]+\d+)'
+REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
+REGEX_0_59 = r'([0-5]?[0-9])'
 
-DATETIME_REGEX = f'(?:({REGEX_DOY})'+r'\s'+f'?|(?:({REGEX_0_59})([hHM])?):(?:({REGEX_0_59})([MsS])?)(?::(?:({REGEX_0_59})([sS])?))?(?:'+r'\s+([aA]|[pP])[mM])?)' + '{1,2}'
+DATETIME_REGEX = \
+    f'(?:{REGEX_DOY}\s?|' + \
+        f'(?:(\d)\s+([aA]|[pP][mM])|' + \
+            f'{REGEX_0_59}([hHM])?' + \
+                f'(?::{REGEX_0_59}([MsS])?' + \
+                    f'(?::(?:{REGEX_0_59}([sS])?))?' + \
+                 ')'+ \
+         ')(?:\s+([aA]|[pP])[mM])?' + \
+     ')' + '{1,2}'
 # print(DATETIME_REGEX)
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
     date_str,\
+    zeroth_val,\
+    zeroth_ampm,\
     first_val,\
     first_unit,\
     second_val,\
@@ -241,11 +259,16 @@ def t_DATETIME(t):
     third_val,\
     third_unit,\
         ampm = re.search(DATETIME_REGEX, t.value).groups()
+
+    if zeroth_val and zeroth_ampm:
+        t.value = datetime.strptime(f'{zeroth_val} {zeroth_ampm}', '%I %p').time()
+        return t
+
     if t.value.count(':') == 1 and \
             not first_unit and not second_unit \
-            and not third_unit and not third_val:
-            raise Exception(f'Did you mean {first_val}h:{second_val} or '+\
-                                          '{first_val}M:{second_val}?')
+                and not third_unit and not third_val:
+                    raise Exception(f'Did you mean {first_val}h:{second_val} or ' + \
+                                                  '{first_val}M:{second_val}?')
 
     if ampm is not None and \
             (first_unit == 'h' or \
@@ -508,6 +531,8 @@ def p_statement_expr(p):
     if p[1] is not None:
         if config.datetime_output_format != 'ISO8601':
             print(normalize(p[1]).strftime(config.datetime_output_format))
+        elif config.clock != '24' and type(p[1]) == time:
+            print(normalize(p[1]).strftime('%I %p'))
         else:
             print(normalize(p[1]))
         names['_'] = p[1]
@@ -651,8 +676,6 @@ def p_expression_relativedelta(p):
         p[0] = cyclic(weekday, leap)
         # p[0] = (datetime.now() + \
         #         relativedelta(weekday=string_to_common_weekday(weekday)(leap))).date()
-    else:
-        raise Exception(f'Invalid syntax: {direction} {weekday}')
 
 def p_relativedelta_cyclic_op(p):
     'relativedelta : CYCLIC_OP WEEKDAY'

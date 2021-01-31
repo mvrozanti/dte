@@ -28,11 +28,15 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ## Examples
 
-### date and difference
+### date
+`dte 1752 Sep 1` - returns that date
+
 `dte 1957-12-26 - today in days` - returns -23041.0
 
-### time and difference
+### time
 `dte 12h:00 AM + 4h` - returns 16:00:00 
+
+`dte 6 pm` - returns 18:00:00
 
 `dte 23h:23` - returns 23:23:00
 
@@ -88,6 +92,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ```
 {
   "timestamp_unit": "<seconds|milliseconds>"
+  "clock": "<24|12>",
   "datetime_output_format": "<ISO8601|<format>>"
 }
 ```
@@ -117,6 +122,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [ ] add tab-completion for:
   - [ ] months
   - [ ] units given current time field or second hand of `in` keyword
+- [ ] run tests across a variety of locales
 - [x] continuous integration
 - [x] parse month & abbrev
 - [x] parse weekday & abbrev
