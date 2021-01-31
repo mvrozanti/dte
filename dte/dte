@@ -82,6 +82,12 @@ OBJECTS
                 2020/12/31
                 today
 
+            it can also represent time only:
+
+                22:22:22
+                6 pm
+                6h:20 am
+
 VARIABLES
 
             there are three built-in variables:

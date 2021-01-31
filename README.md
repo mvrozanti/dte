@@ -19,11 +19,11 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### Conventions
 - Dates are always interpreted with highest units appearing before, e.g.: `%Y-%m-%d` or `%Y %b %d` formats, although the unit separator doesn't have to be "-" for the former
 - Unix timestamps are both interpreted and output in seconds
-- When using timedeltas, you should remember that m is for month and M is for minute
+- When specifying time, remember that m is for month and M is for minute, as specified in ISO8601
 
 ### Dependencies
 - [dateutil](https://github.com/dateutil/dateutil) handles month and year's complex operations
-- [ply](https://github.com/dabeaz/ply)is a pure-Python implementation of the popular compiler construction tools lex and yacc 
+- [ply](https://github.com/dabeaz/ply) is a pure-Python implementation of the popular compiler construction tools lex and yacc 
 - [appdirs](https://github.com/ActiveState/appdirs) for reading config file in a cross-platform manner
 
 ## Examples
@@ -36,11 +36,13 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### time
 `dte 12h:00 AM + 4h` - returns 16:00:00 
 
-`dte 6 pm` - returns 18:00:00
+`dte 6 pm` - returns 18:00:00 
 
 `dte 23h:23` - returns 23:23:00
 
 `dte 23M:23` - returns 00:23:23
+
+The output format for time is configurable via the 'clock' key.
 
 ### week days
 `dte monday` - returns the closest weekday date
@@ -108,7 +110,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [x] timestamp object
 - [x] next/last(weekday)
 - [ ] add basedate point
-- [ ] add `6 pm`
+- [x] add `6 pm`
 - [x] in keyword
   - [x] `first/last friday in 2014` - extremity
   - [ ] `first/last friday in April` - extremity
