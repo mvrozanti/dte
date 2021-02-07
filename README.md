@@ -31,7 +31,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### date
 `dte 1752 Sep 1` - returns that date
 
-`dte 1957-12-26 - today in days` - returns -23041.0
+`dte 1957-12-26 - today in days` - returns -23041.0 at the time of writing
 
 ### time
 `dte 12h:00 AM + 4h` - returns 16:00:00 
@@ -116,6 +116,7 @@ The output format for time is configurable via the 'clock' key.
   - [ ] `first/last friday in April` - extremity
   - [ ] `first/last friday in next month` - extremity
   - [ ] `first/last friday in April 2014` - extremity
+  - [ ] `INTEGERth WEEKDAY IN BASEDATE` - extremity?
 - [x] until keyword
 - [ ] format(timepoint, fmt) (in keyword) units given current time field
 - [ ] add option

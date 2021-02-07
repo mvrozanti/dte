@@ -67,6 +67,9 @@ OBJECTS
                 3m+3M  # except for months and minutes
                -2M+2s  # accepts negative numbers
                 10Y3s  # join them together instead of adding
+                10h30  # omit the last unit and dte will
+                       # interpret it as the immediatelly
+                       # smaller unit
 
     DATETIME
 
@@ -115,7 +118,7 @@ OPERATORS
             -  : takes de difference between two points 
                  in time and stores a delta
 
- <,<=,>,==,!=  : compares two points in time and returns
+ < <= > == !=  : compares two points in time and returns
                  a boolean
 
 KEYWORDS
