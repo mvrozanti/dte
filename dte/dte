@@ -85,8 +85,16 @@ OBJECTS
             it can also represent time only:
 
                 22:22:22
+                22h:22
+                22H:22
+                22M:22
+                22:22s
+                22:22M
                 6 pm
                 6h:20 am
+
+            notice that the combination of NUMBER:NUMBER
+            is ambiguous and therefore invalid syntax.
 
 VARIABLES
 
@@ -243,8 +251,9 @@ REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + '|'.join(months)
 REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
+# https://regexr.com/5lclj
 DATETIME_REGEX = \
-    f'(?:{REGEX_DOY}\s?|' + \
+    f'(?i)(?:{REGEX_DOY}\s?|' + \
         f'(?:(\d)\s+([aA]|[pP][mM])|' + \
             f'{REGEX_0_59}([hHM])?' + \
                 f'(?::{REGEX_0_59}([MsS])?' + \
@@ -285,7 +294,7 @@ def t_DATETIME(t):
                     raise Exception('Conflicting 24-hour clock with 12-hour clock')
 
     if date_str:
-        if any(month in date_str for month in months_abbrev):
+        if any(month.lower() in date_str.lower() for month in months_abbrev + months):
             y,b,d = replace(r'[\W\s]+', ' ', date_str).split(' ')
             try:
                 date = datetime.strptime(f'{y.zfill(4)}-{b}-{d}', '%Y-%b-%d')
