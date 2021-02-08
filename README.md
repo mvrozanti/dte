@@ -19,7 +19,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### Conventions
 ![relevant xkcd](https://sslimgs.xkcd.com/comics/iso_8601.png)
 - Dates are always interpreted with [highest units appearing before](https://preview.redd.it/hlpo8ia9f9a41.png?auto=webp&s=051d6cc18d06399dab01ea45e9ed0d2255b004c1), e.g.: `%Y-%m-%d` or `%Y %b %d` [formats](https://strftime.org/), although the unit separator doesn't have to be "-" for the former
-- Unix timestamps are both interpreted and output in seconds
+- Unix timestamps are both interpreted and output in seconds by default, but this is configurable
 - When specifying time, remember that m is for month and M is for minute, as specified in ISO8601
 
 ### Dependencies
