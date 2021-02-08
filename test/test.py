@@ -29,6 +29,7 @@ test_expectancy = {
         '08h30'                                 : lambda r: r == '8:30:00',
         '1 in unix'                             : lambda r: r == '1',
         'n - 1234'                              : lambda r: re.match(DELTA_FORMAT, r),
+        '10h30 + 14h'                           : lambda r: r == '1 day, 0:30:00',
         '2021 feb 14 12:00:00'                  : lambda r: r == '2021-02-14 12:00:00',
         'seconds until 2021 feb 14 12:00:00'    : lambda r: float(r) < 580301.752936,
         '1-1-1 23:23:23'                        : lambda r: re.match(ISO_FORMAT, r),

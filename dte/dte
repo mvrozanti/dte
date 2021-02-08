@@ -342,7 +342,7 @@ def t_DATETIME(t):
 
 UNITS_STR = 'sSMhHdDwWmyY'
 FLOATING_POINT = r'((?:\d*[.])?\d+)'
-DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']|$))*'
+DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']?))*'
 @TOKEN(DELTA_TOKEN)
 def t_DELTA(t):
     units_vals = OrderedDict()
