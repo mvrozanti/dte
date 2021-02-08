@@ -189,7 +189,9 @@ tokens = (
     'UNIT',
     'CYCLIC_OP',
     'IN',
+    'WAIT',
     'UNTIL',
+    'SINCE',
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
     'INTEGER',
@@ -221,6 +223,8 @@ t_EQ        = r'=='
 t_NE        = r'!='
 t_IN        = r'(?i)in'
 t_UNTIL     = r'(?i)until'
+t_SINCE     = r'(?i)since'
+t_WAIT      = r'(?i)wait'
 
 reserved = [
             '|'.join(days),
@@ -237,6 +241,8 @@ reserved = [
             r'seconds|minutes|hours|days|weeks',
             r't(oday)?',
             r'until',
+            r'since',
+            r'wait',
             r'yd|yesterday',
         ]
 
@@ -467,9 +473,11 @@ import ply.lex as lex
 lex.lex(debug=False)
 
 def wait(t):
+    now = datetime.now()
     if isinstance(t, datetime):
-        now = datetime.now()
         delta = t - now
+    elif isinstance(t, time):
+        delta = datetime.combine(now.date(), t) - now
     elif isinstance(t, timedelta):
         delta = t
     else:
@@ -511,7 +519,6 @@ names = {
             'minute'    : lambda t                           : t.minute,
             'second'    : lambda t                           : t.second,
 
-            'wait'      : lambda t                           : wait(t),
             'dow'       : lambda t                           : dow(t),
             'dayofweek' : lambda t                           : dow(t),
             'weekday'   : lambda t                           : dow(t),
@@ -527,6 +534,10 @@ precedence = (
         'MINUS', 
         ),
     )
+
+def p_statement_wait_until_point(p):
+    'statement : WAIT UNTIL point'
+    wait(p[3])
 
 def p_statements(p):
     'statement : statement SEMICOLON statement'
@@ -722,10 +733,14 @@ def delta_to_unit(delta, unit):
         return total_seconds / 60 / 60 / 24 / 7
 
 def p_expression_unit_until_point(p):
-    'expression : UNIT UNTIL point'
+    '''expression : UNIT UNTIL point
+                  | UNIT SINCE point
+                  '''
     if p[1].lower() in unit_map.values():
         delta = p[3] - datetime.now()
         p[0] = delta_to_unit(delta, p[1].lower())
+        if p[2] == 'since':
+            p[0] = -p[0]
     else:
         raise Exception('Invalid syntax: {p[1]} {p[2]} {p[3]}')
 
