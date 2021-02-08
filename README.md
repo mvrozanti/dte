@@ -12,20 +12,13 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ## How to use & What to know
 
-### Install
-
 `pip install dte`
 
 ### Conventions
 ![relevant xkcd](https://sslimgs.xkcd.com/comics/iso_8601.png)
-- Dates are always interpreted with [highest units appearing before](https://preview.redd.it/hlpo8ia9f9a41.png?auto=webp&s=051d6cc18d06399dab01ea45e9ed0d2255b004c1), e.g.: `%Y-%m-%d` or `%Y %b %d` [formats](https://strftime.org/), although the unit separator doesn't have to be "-" for the former
+- Dates are always interpreted with [highest units appearing before](https://preview.redd.it/hlpo8ia9f9a41.png?auto=webp&s=051d6cc18d06399dab01ea45e9ed0d2255b004c1), e.g.: `%Y-%m-%d` or `%Y %b %d` [formats](https://strftime.org/)
 - Unix timestamps are both interpreted and output in seconds by default, but this is configurable
-- When specifying time, remember that m is for month and M is for minute, as specified in ISO8601
-
-### Dependencies
-- [dateutil](https://github.com/dateutil/dateutil) handles month and year's complex operations
-- [ply](https://github.com/dabeaz/ply) is a pure-Python implementation of the popular compiler construction tools lex and yacc 
-- [appdirs](https://github.com/ActiveState/appdirs) for reading config file in a cross-platform manner
+- When specifying time, just remember that M is for month and m is for minute
 
 ## Examples
 
@@ -41,7 +34,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 `dte 23h:23` - returns 23:23:00
 
-`dte 23M:23` - returns 00:23:23
+`dte 23m:23` - returns 00:23:23
 
 The output format for time is configurable via the 'clock' key.
 
@@ -79,9 +72,9 @@ The output format for time is configurable via the 'clock' key.
 ### delta declaration and operations
 `dte 1d` - declares a one day timedelta
 
-`dte 7y6m5w4d3h2M1s` - represents 2776 days, 3:02:00
+`dte 7y6M5w4d3h2m1s` - represents 2776 days, 3:02:00
 
-`dte 1d2M+2M+3h` - results in 1 day, 3:04:00
+`dte 1d2m+2m+3h` - results in 1 day, 3:04:00
 
 `dte -100.5d` - accepts negative and/or floating point values
 
@@ -99,6 +92,11 @@ The output format for time is configurable via the 'clock' key.
   "datetime_output_format": "<ISO8601|<format>>"
 }
 ```
+
+### Dependencies
+- [dateutil](https://github.com/dateutil/dateutil) handles month and year's complex operations
+- [ply](https://github.com/dabeaz/ply) is a pure-Python implementation of the popular compiler construction tools lex and yacc 
+- [appdirs](https://github.com/ActiveState/appdirs) for reading config file in a cross-platform manner
 
 ## To do
 - [x] floating-point time units

@@ -64,8 +64,8 @@ OBJECTS
             differentiating months and minutes:
 
                 1D+1d  # case insensitive
-                3m+3M  # except for months and minutes
-               -2M+2s  # accepts negative numbers
+                3M+3m  # except for months and minutes
+               -2m+2s  # accepts negative numbers
                 10Y3s  # join them together instead of adding
                 10h30  # omit the last unit and dte will
                        # interpret it as the immediatelly
@@ -90,9 +90,9 @@ OBJECTS
                 22:22:22
                 22h:22
                 22H:22
-                22M:22
+                22m:22
                 22:22s
-                22:22M
+                22:22m
                 6 pm
                 6h:20 am
 
@@ -165,7 +165,10 @@ n = None
 replace = lambda replacee,replacement,string: re.sub(replacee, replacement, string)
 
 relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
+
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+# localized_month = lambda number_one_based: datetime.strptime(str(number_one_based), "%m").strftime("%B")
 months = ['January', 'February', 'March', 'April', 'May', 'June', \
             'July', 'August', 'September', 'October', 'November', 'December']
 days_abbrev = [d[:3] for d in days]
@@ -175,10 +178,10 @@ months_abbrev = [m[:3] for m in months]
 tokens = (
     'PLUS','MINUS','EQUALS',
     'LPAREN','RPAREN',
-    'YD', # yesterday
-    'N',  # now
-    'T',  # today
-    'TM', # tomorrow
+    'YD',
+    'N',
+    'T',
+    'TM',
     'UNIT',
     'CYCLIC_OP',
     'IN',
@@ -213,22 +216,7 @@ t_LE        = r'<='
 t_EQ        = r'=='
 t_NE        = r'!='
 t_IN        = r'(?i)in'
-t_UNTIL        = r'(?i)until'
-
-unit_map = {
-        's': 'seconds',
-        'S': 'seconds',
-        'M': 'minutes',
-        'h': 'hours',
-        'H': 'hours',
-        'd': 'days',
-        'D': 'days',
-        'w': 'weeks',
-        'W': 'weeks',
-        'm': 'months',
-        'y': 'years',
-        'Y': 'years',
-        }
+t_UNTIL     = r'(?i)until'
 
 reserved = [
             '|'.join(days),
@@ -286,12 +274,12 @@ def t_DATETIME(t):
             not first_unit and not second_unit \
                 and not third_unit and not third_val:
                     raise Exception(f'Did you mean {first_val}h:{second_val} or ' + \
-                                                  '{first_val}M:{second_val}?')
+                                                  '{first_val}m:{second_val}?')
 
     if ampm is not None and \
             (first_unit == 'h' or \
                 first_unit == 'H' or \
-                second_unit == 'M' or \
+                second_unit == 'm' or \
                 third_val) and \
                 int(first_val ) > 12:
                     raise Exception('Conflicting 24-hour clock with 12-hour clock')
@@ -307,8 +295,8 @@ def t_DATETIME(t):
                 except:
                     raise Exception(f'Invalid syntax: {date_str}')
         else:
-            y,m,d = replace(r'\D', '-', date_str).split('-')
-            date = datetime.strptime(f'{y.zfill(4)}-{m}-{d}', '%Y-%m-%d').date()
+            y,M,d = replace(r'\D', '-', date_str).split('-')
+            date = datetime.strptime(f'{y.zfill(4)}-{M}-{d}', '%Y-%m-%d').date()
         if (first_val,second_val,third_val) == (None,None,None):
             t.value = date
             return t
@@ -317,12 +305,12 @@ def t_DATETIME(t):
     is_HMS = t.value.count(':') == 2
     is_HM = 'h' == first_unit or \
             'H' == first_unit or \
-            'M' == second_unit or \
+            'm' == second_unit or \
             (third_unit is not None and \
                 ('s' == third_unit or 'S' == third_unit))
     if ampm is not None and \
             (first_unit == 'h' or first_unit == 'H' or \
-                second_unit == 'M'):
+                second_unit == 'm'):
                     if first_val != '12':
                         if ampm.lower() == 'p':
                             first_val = f'{(int(first_val)+12)}' 
@@ -340,7 +328,22 @@ def t_DATETIME(t):
     t.value = le_time if not date_str else datetime.combine(date,le_time)
     return t
 
-UNITS_STR = 'sSMhHdDwWmyY'
+unit_map = {
+        's': 'seconds',
+        'S': 'seconds',
+        'm': 'minutes',
+        'h': 'hours',
+        'H': 'hours',
+        'd': 'days',
+        'D': 'days',
+        'w': 'weeks',
+        'W': 'weeks',
+        'M': 'months',
+        'y': 'years',
+        'Y': 'years',
+        }
+
+UNITS_STR = ''.join(unit_map.keys())
 FLOATING_POINT = r'((?:\d*[.])?\d+)'
 DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']?))*'
 @TOKEN(DELTA_TOKEN)
@@ -427,7 +430,7 @@ def parse_units(units_vals):
         if unit in units_vals:
             if unit.lower() == 'y':
                 parsed += (datetime.now()+relativedelta(years=units_vals[unit])) - datetime.now()
-            elif unit == 'm':
+            elif unit == 'M':
                 parsed += (datetime.now()+relativedelta(months=units_vals[unit])) - datetime.now()
             else:
                 parsed += timedelta(**{long_name: units_vals[unit]})
@@ -505,9 +508,6 @@ names = {
         }
 
 precedence = (
-    ('left',
-        'IN', 
-        ),
     ('right',
         'UMINUS',
         ),
@@ -692,8 +692,6 @@ def p_expression_relativedelta(p):
     elif direction in ['next', 'last']:
         leap = 1 if direction  == 'next' else -1
         p[0] = cyclic(weekday, leap)
-        # p[0] = (datetime.now() + \
-        #         relativedelta(weekday=string_to_common_weekday(weekday)(leap))).date()
 
 def p_relativedelta_cyclic_op(p):
     'relativedelta : CYCLIC_OP WEEKDAY'
