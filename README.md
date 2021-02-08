@@ -81,6 +81,9 @@ The output format for time is configurable via the 'clock' key.
 ### and in case you need it
 `dte help` - prints a detailed manual
 
+### locali(z|s)ation
+`dte 2020 Okt 10` - although english month and day names are always recognized, so are the names in the user's locale
+
 ## Configuration File
 
 `dte` tries to read a `config.json` file under config directory (`~/.config/dte/` on Linux). In it you can set the following options:
@@ -119,11 +122,11 @@ The output format for time is configurable via the 'clock' key.
 - [x] until keyword
 - [ ] format(timepoint, fmt) (in keyword) units given current time field
 - [ ] add option
-  - [ ] to use locale and custom formats for i/o
+  - [ ] to use custom locale
   - [x] to set unix timestamp format (seconds, millis, etc)
 - [ ] add tab-completion for:
   - [ ] months
-  - [ ] units given current time field or second hand of `in` keyword
+  - [ ] units given current datetime field or second hand of `in` keyword
 - [ ] run tests across a variety of locales
 - [x] continuous integration
 - [x] parse month & abbrev

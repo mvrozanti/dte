@@ -7,6 +7,7 @@ from ply.lex import TOKEN
 from time import sleep, mktime
 from types import SimpleNamespace as Namespace
 import appdirs
+import calendar
 import code
 import json
 import locale
@@ -166,14 +167,17 @@ replace = lambda replacee,replacement,string: re.sub(replacee, replacement, stri
 
 relativedelta_days = [MO,TU,WE,TH,FR,SA,SU]
 
-days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+days = list(calendar.day_name)
+months = list(calendar.month_name)[1:]
+days_abbrev = list(calendar.day_abbr)
+months_abbrev = list(calendar.month_abbr)[1:]
 
-# localized_month = lambda number_one_based: datetime.strptime(str(number_one_based), "%m").strftime("%B")
-months = ['January', 'February', 'March', 'April', 'May', 'June', \
+days_en = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+days_en_abbrev = [d[:3] for d in days_en]
+days_en_abbrev_max = [d[:2] for d in days_en]
+months_en = ['January', 'February', 'March', 'April', 'May', 'June', \
             'July', 'August', 'September', 'October', 'November', 'December']
-days_abbrev = [d[:3] for d in days]
-days_abbrev_max = [d[:2] for d in days]
-months_abbrev = [m[:3] for m in months]
+months_en_abbrev = [m[:3] for m in months_en]
 
 tokens = (
     'PLUS','MINUS','EQUALS',
@@ -221,9 +225,12 @@ t_UNTIL     = r'(?i)until'
 reserved = [
             '|'.join(days),
             '|'.join(days_abbrev),
-            '|'.join(days_abbrev_max),
             '|'.join(months),
             '|'.join(months_abbrev),
+            '|'.join(days_en),
+            '|'.join(days_en_abbrev),
+            '|'.join(days_en_abbrev_max),
+            '|'.join(months_en_abbrev),
             r'in',
             r'n(ow)?',
             r'next|last',
@@ -238,7 +245,11 @@ def is_reserved(k):
         if re.match(r, k):
             return True
 
-REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + '|'.join(months) + '|' + '|'.join(months_abbrev) + r')[\W\s]+\d+)'
+REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
+        '|'.join(months) + '|' + \
+        '|'.join(months_abbrev) + '|' + \
+        '|'.join(months_en_abbrev) + \
+        r')[\W\s]+\d+)'
 REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
@@ -282,7 +293,7 @@ def t_DATETIME(t):
                 second_unit == 'm' or \
                 third_val) and \
                 int(first_val ) > 12:
-                    raise Exception('Conflicting 24-hour clock with 12-hour clock')
+                    raise Exception('Conflicting 24-hour time in 12-hour clock')
 
     if date_str:
         if any(month.lower() in date_str.lower() for month in months_abbrev + months):
@@ -364,12 +375,12 @@ def t_DELTA(t):
 
 t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
 
-@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_abbrev_max))
+@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_en_abbrev) + '|' + '|'.join(days_en_abbrev_max))
 def t_WEEKDAY(t):
     t.value = t.value
     return t
 
-@TOKEN(r'(?i)' + '|'.join(months) + '|' + '|'.join(months_abbrev))
+@TOKEN(r'(?i)' + '|'.join(months) + '|'.join(months_abbrev))
 def t_MONTH(t):
     t.value = Month(t.value)
     return t
