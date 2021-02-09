@@ -244,11 +244,12 @@ reserved = [
             r'since',
             r'wait',
             r'yd|yesterday',
+            r'tm|tomorrow',
         ]
 
 def is_reserved(k):
     for r in reserved:
-        if re.match(r, k):
+        if re.match('(?i)'+r, k):
             return True
 
 REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
@@ -543,8 +544,13 @@ def p_statements(p):
     'statement : statement SEMICOLON statement'
 
 def p_statement_invalid_assignment(p):
-    'statement : WEEKDAY EQUALS expression'
-    raise Exception('Can\'t assign expression to weekday')
+    '''statement : WEEKDAY EQUALS expression
+                 | YD EQUALS expression
+                 | TM EQUALS expression
+                 | T EQUALS expression
+                 | N EQUALS expression
+                 '''
+    raise Exception(f'Can\'t assign expression to {p[1]} keyword')
 
 def p_statement_assign(p):
     'statement : NAME EQUALS expression'
