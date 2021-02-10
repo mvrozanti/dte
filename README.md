@@ -16,9 +16,10 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ### Conventions
 ![relevant xkcd](https://sslimgs.xkcd.com/comics/iso_8601.png)
-- Dates are always interpreted with [highest units appearing before](https://preview.redd.it/hlpo8ia9f9a41.png?auto=webp&s=051d6cc18d06399dab01ea45e9ed0d2255b004c1), e.g.: `%Y-%m-%d` or `%Y %b %d` [formats](https://strftime.org/)
+- Dates are always interpreted with [highest units appearing before](https://i.imgur.com/y2tBVHx.png), e.g.: `2021-06-13`, `2023 August 27` or `2019 Jul 20`
 - Unix timestamps are both interpreted and output in seconds by default, but this is configurable
-- When specifying time, just remember that M is for month and m is for minute
+- When specifying time, just remember that `M` is for month and `m` is for minute
+- Although english month and week-day names are always recognized, so are the names in the user's locale
 
 ## Examples
 
@@ -51,7 +52,7 @@ The output format for time is configurable via the 'clock' key.
 
 `dte 1d in hours` - returns the amount of hours in a day
 
-`dte 1959 Jan 26 in unix` - returns the unix timestamp for the date
+`dte 1959 May 26 in unix` - returns the unix timestamp for the date
 
 ### the `until` keyword
 
@@ -62,6 +63,12 @@ The output format for time is configurable via the 'clock' key.
 `dte last sunday in 2021` - returns 2021-12-26
 
 `dte first sunday in 2021` - returns 2021-01-03
+
+### base date
+
+`dte days until Mar 2021` - returns the amount of days until the first day of base date
+
+`dte last sunday in Jan 2021` - returns 2021-01-31
 
 ### operators
 
@@ -82,7 +89,7 @@ The output format for time is configurable via the 'clock' key.
 `dte help` - prints a detailed manual
 
 ### locali(z|s)ation
-`dte 2020 Okt 10` - although english month and day names are always recognized, so are the names in the user's locale
+`dte 2020 Okt 10` - would be valid input if user's locale is German
 
 ## Configuration File
 
@@ -111,13 +118,13 @@ The output format for time is configurable via the 'clock' key.
 - [x] wait(x)
 - [x] timestamp object
 - [x] next/last(weekday)
-- [ ] add basedate point
+- [x] add basedate point
 - [x] add `6 pm`
 - [x] in keyword
   - [x] `first/last friday in 2014` - extremity
   - [ ] `first/last friday in April` - extremity
   - [ ] `first/last friday in next month` - extremity
-  - [ ] `first/last friday in April 2014` - extremity
+  - [x] `first/last friday in 2014 April ` - extremity
   - [ ] `INTEGERth WEEKDAY IN BASEDATE` - extremity?
 - [x] until keyword
 - [ ] format(timepoint, fmt) (in keyword) units given current time field

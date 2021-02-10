@@ -102,7 +102,9 @@ test_expectancy = {
         'first sunday in 2021'                  : lambda r: r == '2021-01-03',
         't - next Sunday'                       : lambda r: re.match(DELTA_FORMAT, r),
         'wait .001s'                            : lambda r: len(r) == 0,
-        'weekday 0'                             : lambda r: 'Wednesday',
+        'weekday 0'                             : lambda r: r == 'Wednesday',
+        'Jan 2014'                              : lambda r: r == '2014-01-01',
+        'first friday in April 2014'            : lambda r: r == '2014-04-04',
         'yd-5h'                                 : lambda r: re.match(ISO_FORMAT, r),
         '1957-12-26 22:22:22 in unix'           : lambda r: -379118258 - 86400 < int(r) < -379118258 + 86400,
         }

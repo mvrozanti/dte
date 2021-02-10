@@ -149,7 +149,7 @@ FUNCTIONS / ATTRIBUTES
 
     next WEEKDAY     : returns the date for the next weekday
 
-    last WEEKDAY     : returns the date for the last weekday
+    lastWEEKDAY     : returns the date for the last weekday
 
 dayofweek TIME_POINT : returns weekday for time point
     dow  TIME_POINT  : ⏎
@@ -197,6 +197,7 @@ tokens = (
     'INTEGER',
     'YEAR',
     'MONTH',
+    'BASEDATE',
     'DELTA', 
     'WEEKDAY', 
     'PERIOD', 
@@ -233,7 +234,7 @@ reserved = [
             '|'.join(months_abbrev),
             '|'.join(days_en),
             '|'.join(days_en_abbrev),
-            '|'.join(days_en_abbrev_max),
+            # '|'.join(days_en_abbrev_max),
             '|'.join(months_en_abbrev),
             r'in',
             r'n(ow)?',
@@ -252,11 +253,13 @@ def is_reserved(k):
         if re.match('(?i)'+r, k):
             return True
 
+REGEX_ALL_MONTHS = '|'.join(months) + '|' + \
+                   '|'.join(months_abbrev) + '|' + \
+                   '|'.join(months_en_abbrev)
 REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
-        '|'.join(months) + '|' + \
-        '|'.join(months_abbrev) + '|' + \
-        '|'.join(months_en_abbrev) + \
+        REGEX_ALL_MONTHS + \
         r')[\W\s]+\d+)'
+
 REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
@@ -270,6 +273,7 @@ DATETIME_REGEX = \
                  ')'+ \
          ')(?:\s+([aA]|[pP])[mM])?' + \
      ')' + '{1,2}'
+
 # print(DATETIME_REGEX)
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
@@ -380,9 +384,41 @@ def t_DELTA(t):
         t.value += le_add
     return t
 
-t_NAME = '(?i)(' + ''.join([f'(?!{res})' for res in reserved]) + '[a-z_][a-z0-9_]*)'
+REGEX_1_12 = '(1[0-2]|[1-9])'
+BASEDATE_REGEX = '(?:' + \
+        f'({REGEX_ALL_MONTHS})(?!:|\+)\W(\d+)|' + \
+        f'(\d+)(?!:|\+)\W({REGEX_ALL_MONTHS})|' + \
+        f'(\d+)(?!:|\+)\W{REGEX_1_12}' + \
+        ')'
 
-@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_en_abbrev) + '|' + '|'.join(days_en_abbrev_max))
+def get_month_index_by_name(month_name):
+    for month_collection in (months, months_abbrev, months_en_abbrev):
+        if month_name in month_collection:
+            return month_collection.index(month_name) + 1
+
+# print(BASEDATE_REGEX)
+@TOKEN(BASEDATE_REGEX)
+def t_BASEDATE(t):
+    m1,y1,y2,m2,y3,m3 = re.search(BASEDATE_REGEX, t.value).groups()
+    if m1:
+        month = m1
+        year = y1
+    if m2:
+        month = m2
+        year = y2
+    if m3:
+        month = m3
+        year = y3
+    year = int(year)
+    month_index = get_month_index_by_name(month)
+    if not month_index:
+        month_index = int(month)
+    t.value = datetime(year, month_index, 1)
+    return t
+
+t_NAME = '(' + ''.join([f'(?!{res})' for res in reserved]) + '([a-zA-Z_][a-zA-Z0-9_]*))'
+
+@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_en_abbrev))
 def t_WEEKDAY(t):
     t.value = t.value
     return t
@@ -670,7 +706,8 @@ def p_expression_comparison(p):
         print(str(e))
 
 def p_expression_funcall(p):
-    'expression : NAME expression'
+    '''expression : NAME point
+                  '''
     try:
         p[0] = names[p[1].lower()](p[2])
     except:
@@ -681,6 +718,19 @@ def get_extremity_weekday_of_year(direction, weekday, year):
         target = date(year+1,1,1) - timedelta(days=1)
     elif direction == 'first':
         target = date(year,1,1)
+    weekday_ix = [wd.lower() for wd in days].index(weekday)
+    while target.weekday() != weekday_ix:
+        if direction == 'first':
+            target += timedelta(days=1)
+        elif direction == 'last':
+            target -= timedelta(days=1)
+    return target
+
+def get_extremity_weekday_of_basedate(direction, weekday, basedate):
+    if direction == 'last':
+        target = basedate + relativedelta(months=1, days=-1)
+    elif direction == 'first':
+        target = basedate
     weekday_ix = [wd.lower() for wd in days].index(weekday)
     while target.weekday() != weekday_ix:
         if direction == 'first':
@@ -710,13 +760,15 @@ def cyclic(t, direction):
 def p_expression_relativedelta(p):
     '''expression : relativedelta IN MONTH
                   | relativedelta IN INTEGER
+                  | relativedelta IN BASEDATE
                   | relativedelta 
                   '''
     direction, weekday = p[1]
     if len(p) > 2:
-        year = int(p[3])
-        extremity = get_extremity_weekday_of_year(direction, weekday, year)
-        p[0] = extremity
+        if type(p[3]) == int:
+            p[0] = get_extremity_weekday_of_year(direction, weekday, p[3])
+        if type(p[3]) == datetime:
+            p[0] = get_extremity_weekday_of_basedate(direction, weekday, p[3])
     elif direction in ['next', 'last']:
         leap = 1 if direction  == 'next' else -1
         p[0] = cyclic(weekday, leap)
@@ -775,6 +827,7 @@ def p_point(p):
              | T
              | timestamp
              | DATETIME
+             | BASEDATE
              | TM
              | MONTH
              | YEAR
