@@ -4,3 +4,4 @@ __pycache__
 dte.egg-info/*
 dist/*
 init
+.vim
