@@ -182,10 +182,10 @@ months_en_abbrev = [m[:3] for m in months_en]
 tokens = (
     'PLUS','MINUS','EQUALS',
     'LPAREN','RPAREN',
-    'YD',
-    'N',
-    'T',
-    'TM',
+    # 'YD',
+    # 'N',
+    # 'T',
+    # 'TM',
     'UNIT',
     'CYCLIC_OP',
     'IN',
@@ -237,15 +237,15 @@ reserved = [
             # '|'.join(days_en_abbrev_max),
             '|'.join(months_en_abbrev),
             r'in',
-            r'n(ow)?',
+            # r'n(ow)?',
             r'next|last',
             r'seconds|minutes|hours|days|weeks',
-            r't(oday)?',
+            # r't(oday)?',
             r'until',
             r'since',
-            r'wait',
-            r'yd|yesterday',
-            r'tm|tomorrow',
+            # r'wait',
+            # r'yd|yesterday',
+            # r'tm|tomorrow',
         ]
 
 def is_reserved(k):
@@ -253,9 +253,9 @@ def is_reserved(k):
         if re.match('(?i)'+r, k):
             return True
 
-REGEX_ALL_MONTHS = '|'.join(months) + '|' + \
-                   '|'.join(months_abbrev) + '|' + \
-                   '|'.join(months_en_abbrev)
+REGEX_ALL_MONTHS = r'|'.join(months) + r'|' + \
+                   r'|'.join(months_abbrev) + r'|' + \
+                   r'|'.join(months_en_abbrev)
 REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
         REGEX_ALL_MONTHS + \
         r')[\W\s]+\d+)'
@@ -385,10 +385,10 @@ def t_DELTA(t):
     return t
 
 REGEX_1_12 = '(1[0-2]|[1-9])'
-BASEDATE_REGEX = '(?:' + \
-        f'({REGEX_ALL_MONTHS})(?!:|\+)\W(\d+)|' + \
-        f'(\d+)(?!:|\+)\W({REGEX_ALL_MONTHS})|' + \
-        f'(\d+)(?!:|\+)\W{REGEX_1_12}' + \
+BASEDATE_REGEX = r'(?i)(?:' + \
+        r'('+REGEX_ALL_MONTHS+r')(?!:|\+)\W(\d+)|' + \
+        r'(\d+)(?!:|\+)\W('+REGEX_ALL_MONTHS+')|' + \
+        r'(\d+)(?!:|\+)\W'+REGEX_1_12 + \
         ')'
 
 def get_month_index_by_name(month_name):
@@ -416,7 +416,7 @@ def t_BASEDATE(t):
     t.value = datetime(year, month_index, 1)
     return t
 
-t_NAME = '(' + ''.join([f'(?!{res})' for res in reserved]) + '([a-zA-Z_][a-zA-Z0-9_]*))'
+t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)'
 
 @TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_en_abbrev))
 def t_WEEKDAY(t):
@@ -434,29 +434,6 @@ def t_CYCLIC_OP(t):
 
 def t_UNIT(t):
     r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
-    return t
-
-def t_YD(t):
-    r'(?i)(yesterday|yd)'
-    t.value = (datetime.today() - timedelta(days=1)).date()
-    return t
-
-def t_TM(t):
-    r'(?i)(tomorrow|tm)'
-    t.value = (datetime.today() + timedelta(days=1)).date()
-    return t
-
-def t_T(t):
-    r'(?i)t(oday)?'
-    t.value = date.today()
-    return t
-
-def t_N(t):
-    r'(?i)n(ow)?'
-    global n
-    if not n:
-        n = datetime.now()
-    t.value = n
     return t
 
 def get_closest_week_day(week_day):
@@ -556,6 +533,8 @@ names = {
             'minute'    : lambda t                           : t.minute,
             'second'    : lambda t                           : t.second,
 
+            'wait'      : lambda t                           : wait(t),
+            'dow'       : lambda t                           : dow(t),
             'dow'       : lambda t                           : dow(t),
             'dayofweek' : lambda t                           : dow(t),
             'weekday'   : lambda t                           : dow(t),
@@ -567,8 +546,10 @@ precedence = (
         'UMINUS',
         ),
     ('left',
+        'UNIT',
         'PLUS',
         'MINUS', 
+        'NAME',
         ),
     )
 
@@ -581,11 +562,11 @@ def p_statements(p):
 
 def p_statement_invalid_assignment(p):
     '''statement : WEEKDAY EQUALS expression
-                 | YD EQUALS expression
-                 | TM EQUALS expression
-                 | T EQUALS expression
-                 | N EQUALS expression
                  '''
+                 # | YD EQUALS expression
+                 # | TM EQUALS expression
+                 # | T EQUALS expression
+                 # | N EQUALS expression
     raise Exception(f'Can\'t assign expression to {p[1]} keyword')
 
 def p_statement_assign(p):
@@ -595,6 +576,16 @@ def p_statement_assign(p):
     if is_reserved(p[1]):
         raise Exception('Can\'t use reserved keyword')
     names[p[1]] = p[3]
+
+def p_expression_name(p):
+    'expression : NAME'
+    if p[1] not in names:
+        print(f'{p[1]} is not loaded')
+        return
+    if callable(names[p[1]]):
+        p[0] = normalize(names[p[1]]())
+    else:
+        p[0] = names[p[1]]
 
 def normalize(t):
     if type(t) == datetime and \
@@ -707,6 +698,7 @@ def p_expression_comparison(p):
 
 def p_expression_funcall(p):
     '''expression : NAME point
+                  | NAME DELTA
                   '''
     try:
         p[0] = names[p[1].lower()](p[2])
@@ -802,7 +794,18 @@ def p_expression_unit_until_point(p):
     else:
         raise Exception('Invalid syntax: {p[1]} {p[2]} {p[3]}')
 
-def p_expression_point_in_unit(p):
+def p_expression_generic(p):
+    '''expression : DELTA 
+                  | timestamp
+                  | point
+                  '''
+    p[0] = p[1]
+
+def p_timestamp_integer(p):
+    'timestamp : INTEGER'
+    p[0] = datetime.fromtimestamp(int(p[1]) if config.timestamp_unit == 'seconds' else int(p[1])/1000)
+
+def p_statement_point_in_unit(p):
     'expression : expression IN UNIT'
     to_unix = p[3] == 'unix'
     if type(p[1]) == timedelta and to_unix:
@@ -812,42 +815,16 @@ def p_expression_point_in_unit(p):
     if p[3].lower() in unit_map.values():
         p[0] = delta_to_unit(p[1],p[3].lower())
 
-def p_expression_generic(p):
-    '''expression : DELTA 
-                  | point
-                  '''
-    p[0] = p[1]
-
-def p_timestamp_integer(p):
-    'timestamp : INTEGER'
-    p[0] = datetime.fromtimestamp(int(p[1]) if config.timestamp_unit == 'seconds' else int(p[1])/1000)
-
 def p_point(p):
-    '''point : N
-             | T
+    '''point : 
              | timestamp
              | DATETIME
              | BASEDATE
-             | TM
              | MONTH
-             | YEAR
              | WEEKDAY
-             | YD
+             | YEAR
              '''
     p[0] = p[1]
-
-def p_expression_name(p):
-    'expression : NAME'
-    try:
-        p[0] = names[p[1]]
-        if(type(p[0]) is types.LambdaType):
-            p[0] = p[0]()
-    except LookupError:
-        try:
-            p[0] = names[p[3]](p[1])
-        except LookupError:
-            print("Undefined name '%s'" % p[1])
-            p[0] = 0
 
 def p_expression_get_attribute(p):
     'expression : expression PERIOD NAME'
@@ -865,6 +842,12 @@ def p_expression_uminus(p):
 import ply.yacc as yacc
 yacc.yacc(errorlog=yacc.NullLogger())
 
+def current_time_routine():
+    names['n'] = names['now'] = names['N'] = names['NOW'] = datetime.now()
+    names['today'] = names['T'] = names['t'] = names['TODAY'] = datetime.today().date()
+    names['tomorrow'] = names['tm'] = names['TM'] = names['TOMORROW'] = datetime.today().date() + timedelta(days=1)
+    names['yd'] = names['YD'] = datetime.today().date() - timedelta(days=1)
+
 def interactive():
     import cmd
     class CmdParse(cmd.Cmd):
@@ -873,6 +856,7 @@ def interactive():
         def default(self, line):
             if line == 'EOF':
                 exit(0)
+            current_time_routine()
             yacc.parse(line)
             self.commands.append(line)
         def do_help(self, line):
@@ -886,6 +870,7 @@ if __name__ == '__main__':
         if sys.argv[1] in ['-h', '--help']:
             print(HELP)
         else:
+            current_time_routine()
             yacc.parse(' '.join(sys.argv[1:]))
     else:
         interactive()

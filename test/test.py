@@ -28,6 +28,7 @@ test_expectancy = {
         '-1d.dow'                               : lambda r: r in days,
         '08h30'                                 : lambda r: r == '8:30:00',
         '1 in unix'                             : lambda r: r == '1',
+        # '1m in hours'                           : lambda r: r == '1',
         'n - 1234'                              : lambda r: re.match(DELTA_FORMAT, r),
         '10h30 + 14h'                           : lambda r: r == '1 day, 0:30:00',
         '2021 feb 14 12:00:00'                  : lambda r: r == '2021-02-14 12:00:00',
@@ -83,11 +84,11 @@ test_expectancy = {
         '12h:00 pm != 12h:00 am'                : lambda r: eval(r),
         '22h+2m'                                : lambda r: r == '22:02:00', 
         '22h22m'                                : lambda r: r == '22:22:00', 
-        '6y5M4d3h2m1s'                          : lambda r: re.match(r'234\d days, 3:02:.*', r),
-        '7y6M5w4d3h2m1.1s'                      : lambda r: r.startswith('2776 days, 3:02:01'),
+        '6y5M4d3h2m1s'                          : lambda r: re.match(DELTA_FORMAT, r),
+        '7y6M5w4d3h2m1.1s'                      : lambda r: re.match(DELTA_FORMAT, r),
         '2h2m'                                  : lambda r: r == '2:02:00',
-        '3h+3M'                                 : lambda r: re.match('[89][90] days, 2:59:59.*', r),
-        '3M'                                    : lambda r: re.match('[89][890] days, 23:59:59.*', r),
+        '3h+3M'                                 : lambda r: re.match(DELTA_FORMAT, r),
+        '3M'                                    : lambda r: re.match(DELTA_FORMAT, r),
         'T-1.5d'                                : lambda r: re.match(ISO_FORMAT, r),
         'T-10d'                                 : lambda r: re.match(YMD_FORMAT, r),
         'T.day'                                 : lambda r: 0 < int(r) < 32,
@@ -107,6 +108,8 @@ test_expectancy = {
         'first friday in April 2014'            : lambda r: r == '2014-04-04',
         'yd-5h'                                 : lambda r: re.match(ISO_FORMAT, r),
         '1957-12-26 22:22:22 in unix'           : lambda r: -379118258 - 86400 < int(r) < -379118258 + 86400,
+        '5m+5m'                                 : lambda r: r == '0:10:00',
+        # 'first friday in next month'            : lambda r: False,
         }
 
 class Tester(unittest.TestCase):
