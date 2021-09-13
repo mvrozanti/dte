@@ -44,7 +44,7 @@ test_expectancy = {
         '11h:20 AM'                             : lambda r: r == '11:20:00',
         '11m:20 PM'                             : lambda r: r == '00:11:20',
         '11h:20 am'                             : lambda r: r == '11:20:00',
-        '11h:20M pm'                            : lambda r: r == '23:20:00',
+        '11h:20m pm'                            : lambda r: r == '23:20:00',
         '11:20s PM'                             : lambda r: r == '00:11:20',
         '2014 Jan 13'                           : lambda r: r == '2014-01-13',
         '2014 January 13'                       : lambda r: r == '2014-01-13',
@@ -109,7 +109,10 @@ test_expectancy = {
         'yd-5h'                                 : lambda r: re.match(ISO_FORMAT, r),
         '1957-12-26 22:22:22 in unix'           : lambda r: -379118258 - 86400 < int(r) < -379118258 + 86400,
         '5m+5m'                                 : lambda r: r == '0:10:00',
+        '1h in seconds'                         : lambda r: r == '3600.0',
+        '1996 August 28 9 AM'                   : lambda r: r == '1996-08-28 09:00:00',
         # 'first friday in next month'            : lambda r: False,
+        # '1st weekday in august'                 : lambda r: False,
         }
 
 class Tester(unittest.TestCase):

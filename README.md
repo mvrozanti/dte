@@ -26,6 +26,8 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### date
 `dte 1752 Sep 1` - returns that date
 
+`dte 1752 Sep 1 12 AM` - returns that date time
+
 `dte 1957-12-26 - today in days` - returns -23041.0 at the time of writing
 
 ### time
@@ -52,7 +54,7 @@ The output format for time is configurable via the 'clock' key.
 
 `dte 1d in hours` - returns the amount of hours in a day
 
-`dte 1959 May 26 in unix` - returns the unix timestamp for the date
+`dte 1959 May 26 in unix` - returns the unix timestamp for the point in time
 
 ### the `until` keyword
 

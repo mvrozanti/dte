@@ -69,7 +69,7 @@ OBJECTS
                -2m+2s  # accepts negative numbers
                 10Y3s  # join them together instead of adding
                 10h30  # omit the last unit and dte will
-                       # interpret it as the immediatelly
+                       # interpret it as the immediately
                        # smaller unit
 
     DATETIME
@@ -102,7 +102,7 @@ OBJECTS
 
 VARIABLES
 
-            there are three built-in variables:
+            there are four built-in variables:
 
                 T or today     
                 YD or yesterday
@@ -119,8 +119,8 @@ OPERATORS
             -  : takes de difference between two points 
                  in time and stores a delta
 
- < <= > == !=  : compares two points in time and returns
-                 a boolean
+ < <= > == !=  : compares two points in time or two durations
+                 and returns a boolean
 
 KEYWORDS
             in   : the `in` keyword has two purposes,
@@ -182,10 +182,6 @@ months_en_abbrev = [m[:3] for m in months_en]
 tokens = (
     'PLUS','MINUS','EQUALS',
     'LPAREN','RPAREN',
-    # 'YD',
-    # 'N',
-    # 'T',
-    # 'TM',
     'UNIT',
     'CYCLIC_OP',
     'IN',
@@ -259,22 +255,21 @@ REGEX_ALL_MONTHS = r'|'.join(months) + r'|' + \
 REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
         REGEX_ALL_MONTHS + \
         r')[\W\s]+\d+)'
+# print(REGEX_DOY)
 
 REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
-# https://regexr.com/5lclj
 DATETIME_REGEX = \
     f'(?i)(?:{REGEX_DOY}\s?|' + \
-        f'(?:(\d)\s+([aA]|[pP][mM])|' + \
-            f'{REGEX_0_59}([hHM])?' + \
-                f'(?::{REGEX_0_59}([MsS])?' + \
+        f'(?:(\d)\s+([aApP][mM])|' + \
+            f'{REGEX_0_59}([hHm])?' + \
+                f'(?::{REGEX_0_59}([msS])?' + \
                     f'(?::(?:{REGEX_0_59}([sS])?))?' + \
                  ')'+ \
-         ')(?:\s+([aA]|[pP])[mM])?' + \
+         ')(?:\s+([aApP][mM]))?' + \
      ')' + '{1,2}'
 
-# print(DATETIME_REGEX)
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
     date_str,\
@@ -289,8 +284,12 @@ def t_DATETIME(t):
         ampm = re.search(DATETIME_REGEX, t.value).groups()
 
     if zeroth_val and zeroth_ampm:
-        t.value = datetime.strptime(f'{zeroth_val} {zeroth_ampm}', '%I %p').time()
-        return t
+        le_time = datetime.strptime(f'{zeroth_val} {zeroth_ampm}', '%I %p').time()
+        if not date_str:
+            t.value = le_time
+            return t
+    else:
+        le_time = None
 
     if t.value.count(':') == 1 and \
             not first_unit and not second_unit \
@@ -319,25 +318,27 @@ def t_DATETIME(t):
         else:
             y,M,d = replace(r'\D', '-', date_str).split('-')
             date = datetime.strptime(f'{y.zfill(4)}-{M}-{d}', '%Y-%m-%d').date()
-        if (first_val,second_val,third_val) == (None,None,None):
+        if (zeroth_val,first_val,second_val,third_val) == (None,None,None,None):
             t.value = date
             return t
     else:
         date = datetime.today()
-    is_HMS = t.value.count(':') == 2
+    semicolon_count = t.value.count(':')
+    is_HMS = semicolon_count == 2
     is_HM = 'h' == first_unit or \
             'H' == first_unit or \
             'm' == second_unit or \
             (third_unit is not None and \
                 ('s' == third_unit or 'S' == third_unit))
+    is_single = semicolon_count == 0
     if ampm is not None and \
             (first_unit == 'h' or first_unit == 'H' or \
                 second_unit == 'm'):
                     if first_val != '12':
-                        if ampm.lower() == 'p':
+                        if ampm.lower() == 'pm':
                             first_val = f'{(int(first_val)+12)}' 
                     else:
-                        if ampm.lower() == 'a':
+                        if ampm.lower() == 'am':
                             first_val = 0
 
     H_or_M,M_or_S,S = (first_val,second_val,third_val)
@@ -345,6 +346,8 @@ def t_DATETIME(t):
         le_time = datetime.strptime(f'{H_or_M}:{M_or_S}:{S}', '%H:%M:%S').time()
     elif is_HM:
         le_time = datetime.strptime(f'{H_or_M}:{M_or_S}', '%H:%M').time()
+    elif le_time is not None:
+        pass
     else:
         le_time = datetime.strptime(f'{H_or_M}:{M_or_S}', '%M:%S').time()
     t.value = le_time if not date_str else datetime.combine(date,le_time)
@@ -418,6 +421,10 @@ def t_BASEDATE(t):
 
 t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)'
 
+def t_UNIT(t):
+    r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
+    return t
+
 @TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_en_abbrev))
 def t_WEEKDAY(t):
     t.value = t.value
@@ -430,10 +437,6 @@ def t_MONTH(t):
 
 def t_CYCLIC_OP(t):
     r'(?i)(next|last|first)'
-    return t
-
-def t_UNIT(t):
-    r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
     return t
 
 def get_closest_week_day(week_day):
@@ -781,6 +784,8 @@ def delta_to_unit(delta, unit):
         return total_seconds / 60 / 60 / 24
     if unit == 'weeks':
         return total_seconds / 60 / 60 / 24 / 7
+    if unit in ['months', 'years']:
+        raise Exception('Invalid conversion')
 
 def p_expression_unit_until_point(p):
     '''expression : UNIT UNTIL point
