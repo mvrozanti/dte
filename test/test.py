@@ -110,6 +110,7 @@ test_expectancy = {
         '1957-12-26 22:22:22 in unix'           : lambda r: -379118258 - 86400 < int(r) < -379118258 + 86400,
         '5m+5m'                                 : lambda r: r == '0:10:00',
         '1h in seconds'                         : lambda r: r == '3600.0',
+        '1 hour in seconds'                     : lambda r: r == '3600.0',
         '1996 August 28 9 AM'                   : lambda r: r == '1996-08-28 09:00:00',
         # 'first friday in next month'            : lambda r: False,
         # '1st weekday in august'                 : lambda r: False,

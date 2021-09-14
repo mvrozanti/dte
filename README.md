@@ -26,9 +26,9 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 ### date
 `dte 1752 Sep 1` - returns that date
 
-`dte 1752 Sep 1 12 AM` - returns that date time
+`dte 1752 September 1 12 AM` - returns that date time
 
-`dte 1957-12-26 - today in days` - returns -23041.0 at the time of writing
+`dte today - 1957-12-26 in days` - returns 23273.0 at the time of writing
 
 ### time
 `dte 12h:00 AM + 4h` - returns 16:00:00 
@@ -53,6 +53,10 @@ The output format for time is configurable via the 'clock' key.
 ### the `in` keyword
 
 `dte 1d in hours` - returns the amount of hours in a day
+
+`dte 1 day in hours` - returns the same as above
+
+`dte 1 hour 2 minutes in hours` - returns 1.0333333333333334
 
 `dte 1959 May 26 in unix` - returns the unix timestamp for the point in time
 
@@ -102,6 +106,7 @@ The output format for time is configurable via the 'clock' key.
   "timestamp_unit": "<seconds|milliseconds>"
   "clock": "<24|12>",
   "datetime_output_format": "<ISO8601|<format>>"
+  "comparison_tolerance_seconds": <seconds>
 }
 ```
 

@@ -24,7 +24,8 @@ def read_write_get_config():
     default_config = { 
             'timestamp_unit': 'seconds',
             'clock': '24',
-            'datetime_output_format': 'ISO8601' 
+            'datetime_output_format': 'ISO8601',
+            'comparison_tolerance_seconds': 0.001 
             }
     if not op.exists(dte_config_dir):
         os.mkdir(dte_config_dir)
@@ -368,24 +369,32 @@ unit_map = {
         'Y': 'years',
         }
 
-UNITS_STR = ''.join(unit_map.keys())
+SHORT_UNITS_STR = ''.join(unit_map.keys())
+LONG_UNITS_STR = '(?:'+'?|'.join(set(unit_map.values()))+'?)' 
 FLOATING_POINT = r'((?:\d*[.])?\d+)'
-DELTA_TOKEN = FLOATING_POINT + '['+UNITS_STR+']('+FLOATING_POINT+'(['+UNITS_STR+']?))*'
+UNFINISHED_LAST_UNIT_DELTA = f'(?:[ \t]*{FLOATING_POINT}\s*({LONG_UNITS_STR}|[{SHORT_UNITS_STR}])'
+OMITTABLE_LAST_UNIT_DELTA = f'{UNFINISHED_LAST_UNIT_DELTA}?)'
+DELTA_TOKEN = f'{UNFINISHED_LAST_UNIT_DELTA}){OMITTABLE_LAST_UNIT_DELTA}*' 
 @TOKEN(DELTA_TOKEN)
 def t_DELTA(t):
     units_vals = OrderedDict()
-    matches = re.findall(FLOATING_POINT + '(['+UNITS_STR+']|$)', t.value)
+    matches = re.findall(OMITTABLE_LAST_UNIT_DELTA, t.value)
     for v,u in matches:
         units_vals.update({ u if u in 'mM' else u.lower(): float(v) if v else 1 })
     t.value = parse_units(units_vals)
     if '' in units_vals:
         u,_ = list(units_vals.items())[list(units_vals.keys()).index('')-1]
-        next_unit = UNITS_STR[UNITS_STR.index(u)-1]
+        next_unit = SHORT_UNITS_STR[SHORT_UNITS_STR.index(u)-1]
         if next_unit.lower() == u.lower():
-            next_unit = UNITS_STR[UNITS_STR.index(u)-2]
+            next_unit = SHORT_UNITS_STR[SHORT_UNITS_STR.index(u)-2]
         le_add = parse_units({next_unit: units_vals['']}) # get successor delta
         t.value += le_add
     return t
+
+def get_month_index_by_name(month_name):
+    for month_collection in (months, months_abbrev, months_en_abbrev):
+        if month_name in month_collection:
+            return month_collection.index(month_name) + 1
 
 REGEX_1_12 = '(1[0-2]|[1-9])'
 BASEDATE_REGEX = r'(?i)(?:' + \
@@ -393,11 +402,6 @@ BASEDATE_REGEX = r'(?i)(?:' + \
         r'(\d+)(?!:|\+)\W('+REGEX_ALL_MONTHS+')|' + \
         r'(\d+)(?!:|\+)\W'+REGEX_1_12 + \
         ')'
-
-def get_month_index_by_name(month_name):
-    for month_collection in (months, months_abbrev, months_en_abbrev):
-        if month_name in month_collection:
-            return month_collection.index(month_name) + 1
 
 # print(BASEDATE_REGEX)
 @TOKEN(BASEDATE_REGEX)
@@ -460,14 +464,21 @@ def get_closest_week_day(week_day):
 
 def parse_units(units_vals):
     parsed = timedelta()
-    for unit,long_name in unit_map.items():
-        if unit in units_vals:
+    for unit,val in units_vals.items():
+        if unit == '': continue
+        short = unit in unit_map
+        singular = unit + 's' in set(unit_map.values())
+        if singular:
+            unit += 's'
+        if short:
             if unit.lower() == 'y':
                 parsed += (datetime.now()+relativedelta(years=units_vals[unit])) - datetime.now()
             elif unit == 'M':
                 parsed += (datetime.now()+relativedelta(months=units_vals[unit])) - datetime.now()
             else:
-                parsed += timedelta(**{long_name: units_vals[unit]})
+                parsed += timedelta(**{unit_map[unit]: val})
+        else:
+            parsed += timedelta(**{unit: val})
     return parsed
 
 def t_INTEGER(t):
@@ -687,7 +698,7 @@ def p_expression_comparison(p):
         if p[2] == '<=':
             p[0] = p[1] <= p[3]
         if p[2] == '==':
-            p[0] = p[1] == p[3] or (p[3] - p[1]).total_seconds() < .0001
+            p[0] = p[1] == p[3] or (p[3] - p[1]).total_seconds() < config.comparison_tolerance_seconds
         if p[2] == '!=':
             p[0] = p[1] != p[3]
         if type(p[1]) == datetime and \
