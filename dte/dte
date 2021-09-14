@@ -66,12 +66,19 @@ OBJECTS
             differentiating months and minutes:
 
                 1D+1d  # case insensitive
+
                 3M+3m  # except for months and minutes
+
                -2m+2s  # accepts negative numbers
+
                 10Y3s  # join them together instead of adding
+
+     1 hour 3 minutes  # fully spelled out durations 
+                       | are also interepreted
+
                 10h30  # omit the last unit and dte will
-                       # interpret it as the immediately
-                       # smaller unit
+                       | interpret it as the immediately
+                       | smaller unit
 
     DATETIME
 
@@ -97,13 +104,15 @@ OBJECTS
                 22:22m
                 6 pm
                 6h:20 am
+                6h20 am
 
-            notice that the combination of NUMBER:NUMBER
+            notice that the combination of INTEGER:INTEGER
             is ambiguous and therefore invalid syntax.
 
 VARIABLES
 
-            there are four built-in variables:
+            there are four built-in variables, all
+            case insensitive:
 
                 T or today     
                 YD or yesterday
@@ -146,19 +155,19 @@ KEYWORDS
 
 FUNCTIONS / ATTRIBUTES 
               
-    wait DELTA       : sleeps for the duration
+    wait DELTA           : sleeps for the duration
 
-    next WEEKDAY     : returns the date for the next weekday
+    next WEEKDAY         : returns the date for the next weekday
 
-    lastWEEKDAY     : returns the date for the last weekday
+    last WEEKDAY         : returns the date for the last weekday
 
-dayofweek TIME_POINT : returns weekday for time point
-    dow  TIME_POINT  : ⏎
-    TIME_POINT.dow   : ⏎
+    dayofweek TIME_POINT : returns weekday for time point
+        dow  TIME_POINT  | 
+        TIME_POINT.dow   |
 
-STDIN
+STDIN & ARGUMENTS
 
-       The  standard  input  shall be used only if no arguments are specified.
+       Both the standard input and the arguments can be used to run expressions
 
 '''
 
@@ -380,11 +389,18 @@ def t_DELTA(t):
     units_vals = OrderedDict()
     matches = re.findall(OMITTABLE_LAST_UNIT_DELTA, t.value)
     for v,u in matches:
-        units_vals.update({ u if u in 'mM' else u.lower(): float(v) if v else 1 })
+        unit_key = u if u in 'mM' else u.lower()
+        if unit_key in units_vals:
+            units_vals[unit_key] += float(v) if v else 1
+        else:
+            units_vals.update({ unit_key: float(v) if v else 1 })
     t.value = parse_units(units_vals)
     if '' in units_vals:
         u,_ = list(units_vals.items())[list(units_vals.keys()).index('')-1]
-        next_unit = SHORT_UNITS_STR[SHORT_UNITS_STR.index(u)-1]
+        next_unit_index = SHORT_UNITS_STR.index(u)-1
+        if next_unit_index == -1:
+            raise Exception('Invalid delta')
+        next_unit = SHORT_UNITS_STR[next_unit_index]
         if next_unit.lower() == u.lower():
             next_unit = SHORT_UNITS_STR[SHORT_UNITS_STR.index(u)-2]
         le_add = parse_units({next_unit: units_vals['']}) # get successor delta

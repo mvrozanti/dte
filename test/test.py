@@ -111,24 +111,26 @@ test_expectancy = {
         '5m+5m'                                 : lambda r: r == '0:10:00',
         '1h in seconds'                         : lambda r: r == '3600.0',
         '1 hour in seconds'                     : lambda r: r == '3600.0',
+        '2s2s'                                  : lambda r: r == '0:00:04',
         '1996 August 28 9 AM'                   : lambda r: r == '1996-08-28 09:00:00',
         # 'first friday in next month'            : lambda r: False,
         # '1st weekday in august'                 : lambda r: False,
+        # 'day of week 1'                         : lambda r: False,
         }
+
+def run(test):
+    dte_location = os.path.dirname(os.path.realpath(__file__)) \
+                             + op.sep + '..'   \
+                             + op.sep + 'dte' \
+                             + op.sep + 'dte'
+    p = Popen(dte_location, stdin=PIPE, stdout=PIPE)
+    out,err = p.communicate(test.encode('utf-8'))
+    out = out.decode('utf-8').replace('\n','')
+    return out,err
 
 class Tester(unittest.TestCase):
 
     def test_stuff(self):
-        dte_location = os.path.dirname(os.path.realpath(__file__)) \
-                                 + op.sep + '..'   \
-                                 + op.sep + 'dte' \
-                                 + op.sep + 'dte'
         for test,expectancy in test_expectancy.items():
-            p = Popen(dte_location, stdin=PIPE, stdout=PIPE)
-            out,err = p.communicate(test.encode('utf-8'))
-            out = out.decode('utf-8').replace('\n','')
-            try:
-                assert expectancy(out) and not err
-            except Exception as e:
-                print(test)
-                raise e
+            out,err = run(test)
+            assert expectancy(out) and not err

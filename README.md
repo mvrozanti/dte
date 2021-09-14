@@ -56,7 +56,7 @@ The output format for time is configurable via the 'clock' key.
 
 `dte 1 day in hours` - returns the same as above
 
-`dte 1 hour 2 minutes in hours` - returns 1.0333333333333334
+`dte 2 hours 2 minutes in days` - returns 0.08472222222222221 
 
 `dte 1959 May 26 in unix` - returns the unix timestamp for the point in time
 
