@@ -62,6 +62,8 @@ The output format for time is configurable via the 'clock' key.
 
 ### the `until` keyword
 
+`dte seconds until tomorrow` - returns the amount of seconds until tomorrow
+
 `dte seconds until 3000 Apr 10` - returns the amount of seconds until date
 
 ### extremities

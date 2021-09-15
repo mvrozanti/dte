@@ -714,7 +714,7 @@ def p_expression_comparison(p):
         if p[2] == '<=':
             p[0] = p[1] <= p[3]
         if p[2] == '==':
-            p[0] = p[1] == p[3] or (p[3] - p[1]).total_seconds() < config.comparison_tolerance_seconds
+            p[0] = p[1] == p[3] or abs((p[3] - p[1]).total_seconds()) < config.comparison_tolerance_seconds
         if p[2] == '!=':
             p[0] = p[1] != p[3]
         if type(p[1]) == datetime and \
@@ -817,8 +817,12 @@ def delta_to_unit(delta, unit):
 def p_expression_unit_until_point(p):
     '''expression : UNIT UNTIL point
                   | UNIT SINCE point
+                  | UNIT SINCE NAME
+                  | UNIT UNTIL NAME
                   '''
     if p[1].lower() in unit_map.values():
+        if type(p[3]) == str:
+            p[3] = datetime.combine(names[p[3]], datetime.min.time())
         delta = p[3] - datetime.now()
         p[0] = delta_to_unit(delta, p[1].lower())
         if p[2] == 'since':

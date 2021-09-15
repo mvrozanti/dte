@@ -98,7 +98,10 @@ test_expectancy = {
         'next Sunday'                           : lambda r: re.match(YMD_FORMAT, r),
         'seconds until 3000 Apr 10'             : lambda r: 30899416627.60163 > float(r),
         'seconds since 3000 Apr 10'             : lambda r: -30899416627.60163 < float(r),
-        'next Sunday != last sunday'            : lambda r: eval(r),
+        'next Sunday == last sunday'            : lambda r: r == 'False',
+        'next Sunday != last sunday'            : lambda r: r == 'True',
+        'last Sunday == next sunday'            : lambda r: r == 'False',
+        'last Sunday != next sunday'            : lambda r: r == 'True',
         'last sunday in 2021'                   : lambda r: r == '2021-12-26',
         'first sunday in 2021'                  : lambda r: r == '2021-01-03',
         't - next Sunday'                       : lambda r: re.match(DELTA_FORMAT, r),
@@ -113,9 +116,12 @@ test_expectancy = {
         '1 hour in seconds'                     : lambda r: r == '3600.0',
         '2s2s'                                  : lambda r: r == '0:00:04',
         '1996 August 28 9 AM'                   : lambda r: r == '1996-08-28 09:00:00',
+        'seconds until tomorrow'                : lambda r: 0 < float(r) < 86400,
+        # 'seconds until 11 pm'                : lambda r: 0 < float(r) < 86400,
         # 'first friday in next month'            : lambda r: False,
         # '1st weekday in august'                 : lambda r: False,
-        # 'day of week 1'                         : lambda r: False,
+        # 'day of week 0'                         : lambda r: False,
+        # 'seconds in 24h'                        : lambda r: False,
         }
 
 def run(test):
@@ -132,5 +138,9 @@ class Tester(unittest.TestCase):
 
     def test_stuff(self):
         for test,expectancy in test_expectancy.items():
-            out,err = run(test)
-            assert expectancy(out) and not err
+            try:
+                out,err = run(test)
+                assert expectancy(out) and not err
+            except Exception as e:
+                print(test)
+                raise e
