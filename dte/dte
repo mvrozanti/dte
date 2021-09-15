@@ -109,6 +109,14 @@ OBJECTS
             notice that the combination of INTEGER:INTEGER
             is ambiguous and therefore invalid syntax.
 
+    BASEDATE
+            
+            a basedate object is a point in time that
+            represents the beginning of a month:
+
+                2014 Jan
+                Jan 2014
+
 VARIABLES
 
             there are four built-in variables, all

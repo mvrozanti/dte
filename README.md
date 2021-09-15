@@ -72,7 +72,9 @@ The output format for time is configurable via the 'clock' key.
 
 `dte first sunday in 2021` - returns 2021-01-03
 
-### base date
+### basedate
+
+`dte 2021 Mar` - returns the specified first day of that basedate
 
 `dte days until Mar 2021` - returns the amount of days until the first day of base date
 

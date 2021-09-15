@@ -117,11 +117,12 @@ test_expectancy = {
         '2s2s'                                  : lambda r: r == '0:00:04',
         '1996 August 28 9 AM'                   : lambda r: r == '1996-08-28 09:00:00',
         'seconds until tomorrow'                : lambda r: 0 < float(r) < 86400,
-        # 'seconds until 11 pm'                : lambda r: 0 < float(r) < 86400,
+        # 'seconds until 11 pm'                   : lambda r: 0 < float(r) < 86400,
         # 'first friday in next month'            : lambda r: False,
         # '1st weekday in august'                 : lambda r: False,
         # 'day of week 0'                         : lambda r: False,
         # 'seconds in 24h'                        : lambda r: False,
+        # '2014 01'                               : lambda r: False,
         }
 
 def run(test):
