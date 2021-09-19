@@ -1,4 +1,5 @@
 #!/usr/bin/env -S python -m pytest 
+from collections import OrderedDict
 from io import StringIO
 from subprocess import Popen, PIPE
 import code
@@ -20,7 +21,9 @@ HMS_FORMAT = r'^\d+:\d+:\d+$'
 
 DELTA_FORMAT = r'-?\d+ days?, \d{1,2}:\d{2}:\d{2}'
 
-test_expectancy = {
+BASEDATE_FORMAT = r'\d+-\w+'
+
+test_expectancy = OrderedDict({
         '(T-1d).dow'                            : lambda r: r in days,
         '(n + 180d)-180d == n'                  : lambda r: eval(r),
         '(n + 181d)-180d != n'                  : lambda r: eval(r),
@@ -119,12 +122,13 @@ test_expectancy = {
         '1996 August 28 9 AM'                   : lambda r: r == '1996-08-28 09:00:00',
         'seconds until tomorrow'                : lambda r: 0 < float(r) < 86400,
         'seconds until 11 pm'                   : lambda r: 0 < float(r) < 82800,
-        # 'first friday in next month'            : lambda r: False,
+        'next month'                            : lambda r: re.match(BASEDATE_FORMAT, r),
+        'first friday in next month'            : lambda r: re.match(YMD_FORMAT, r),
         # '1st weekday in august'                 : lambda r: False,
         # 'day of week 0'                         : lambda r: False,
         # 'seconds in 24h'                        : lambda r: False,
         # '2014 01'                               : lambda r: False,
-        }
+        })
 
 def run(test):
     dte_location = os.path.dirname(os.path.realpath(__file__)) \

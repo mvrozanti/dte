@@ -16,7 +16,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
 ### Conventions
 ![relevant xkcd](https://sslimgs.xkcd.com/comics/iso_8601.png)
-- Dates are always interpreted with [highest units appearing before](https://i.imgur.com/y2tBVHx.png), e.g.: `2021-06-13`, `2023 August 27` or `2019 Jul 20`
+- When there is margin for ambiguity, expressions are always interpreted with [highest units appearing before](https://i.imgur.com/y2tBVHx.png), e.g.: `2021-06-13`, `2023 August 27` or `2019 Jul 20`
 - Unix timestamps are both interpreted and output in seconds by default, but this is configurable
 - When specifying time, just remember that `M` is for month and `m` is for minute
 - Although english month and week-day names are always recognized, so are the names in the user's locale
@@ -111,6 +111,8 @@ The output format for time is configurable via the 'clock' key.
   "clock": "<24|12>",
   "datetime_output_format": "<ISO8601|<format>>"
   "comparison_tolerance_seconds": <seconds>
+  "comparison_tolerance_seconds": <seconds>
+  "basedate_output_format": "%Y-%b",
 }
 ```
 
@@ -134,7 +136,7 @@ The output format for time is configurable via the 'clock' key.
 - [x] in keyword
   - [x] `first/last friday in 2014` - extremity
   - [ ] `first/last friday in April` - extremity
-  - [ ] `first/last friday in next month` - extremity
+  - [x] `first/last friday in next month` - extremity
   - [x] `first/last friday in 2014 April ` - extremity
   - [ ] `INTEGERth WEEKDAY IN BASEDATE` - extremity?
 - [x] until keyword

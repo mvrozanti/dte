@@ -22,10 +22,11 @@ def read_write_get_config():
     dte_config_dir = config_dir + '/dte'
     dte_config_file = dte_config_dir + '/config.json'
     default_config = { 
-            'timestamp_unit': 'seconds',
-            'clock': '24',
-            'datetime_output_format': 'ISO8601',
-            'comparison_tolerance_seconds': 0.001 
+            "timestamp_unit": "seconds",
+            "clock": "24",
+            "datetime_output_format": "ISO8601",
+            "comparison_tolerance_seconds": 0.001,
+            "basedate_output_format": "%Y-%b",
             }
     if not op.exists(dte_config_dir):
         os.mkdir(dte_config_dir)
@@ -201,7 +202,7 @@ tokens = (
     'PLUS','MINUS','EQUALS',
     'LPAREN','RPAREN',
     'UNIT',
-    'CYCLIC_OP',
+    'INDEXABLE_OP',
     'IN',
     'WAIT',
     'UNTIL',
@@ -211,6 +212,7 @@ tokens = (
     'INTEGER',
     'YEAR',
     'MONTH',
+    'MONTH_LITERAL',
     'BASEDATE',
     'DELTA', 
     'WEEKDAY', 
@@ -222,44 +224,33 @@ tokens = (
 
 # Tokens
 
-t_COLON     = r':'
-t_SEMICOLON = r';'
-t_PERIOD    = r'\.'
-t_PLUS      = r'\+'
-t_MINUS     = r'-'
-t_EQUALS    = r'='
-t_LPAREN    = r'\('
-t_RPAREN    = r'\)'
-t_GT        = r'>'
-t_GE        = r'>='
-t_LT        = r'<'
-t_LE        = r'<='
-t_EQ        = r'=='
-t_NE        = r'!='
-t_IN        = r'(?i)in'
-t_UNTIL     = r'(?i)until'
-t_SINCE     = r'(?i)since'
-t_WAIT      = r'(?i)wait'
+t_COLON             = r':'
+t_SEMICOLON         = r';'
+t_PERIOD            = r'\.'
+t_PLUS              = r'\+'
+t_MINUS             = r'-'
+t_EQUALS            = r'='
+t_LPAREN            = r'\('
+t_RPAREN            = r'\)'
+t_GT                = r'>'
+t_GE                = r'>='
+t_LT                = r'<'
+t_LE                = r'<='
+t_EQ                = r'=='
+t_NE                = r'!='
+t_IN                = r'(?i)in'
+t_UNTIL             = r'(?i)until'
+t_SINCE             = r'(?i)since'
+t_WAIT              = r'(?i)wait'
+t_MONTH_LITERAL     = r'(?i)month'
 
 reserved = [
-            '|'.join(days),
-            '|'.join(days_abbrev),
-            '|'.join(months),
-            '|'.join(months_abbrev),
-            '|'.join(days_en),
-            '|'.join(days_en_abbrev),
-            # '|'.join(days_en_abbrev_max),
-            '|'.join(months_en_abbrev),
             r'in',
-            # r'n(ow)?',
             r'next|last',
             r'seconds|minutes|hours|days|weeks',
-            # r't(oday)?',
             r'until',
             r'since',
-            # r'wait',
-            # r'yd|yesterday',
-            # r'tm|tomorrow',
+            r'month',
         ]
 
 def is_reserved(k):
@@ -418,8 +409,9 @@ def t_DELTA(t):
 
 def get_month_index_by_name(month_name):
     for month_collection in (months, months_abbrev, months_en_abbrev):
-        if month_name in month_collection:
-            return month_collection.index(month_name) + 1
+        for month in month_collection:
+            if month.lower() == month_name.lower():
+                return month_collection.index(month) + 1
 
 REGEX_1_12 = '(1[0-2]|[1-9])'
 BASEDATE_REGEX = r'(?i)(?:' + \
@@ -453,9 +445,9 @@ def t_UNIT(t):
     r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
     return t
 
-@TOKEN(r'(?i)' + '|'.join(days) + '|' + '|'.join(days_abbrev) + '|' + '|'.join(days_en_abbrev))
+WEEKDAY_TOKEN = r'(?i)Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon(?!th)|Tue|Wed|Thu|Fri|Sat|Sun'
+@TOKEN(WEEKDAY_TOKEN)
 def t_WEEKDAY(t):
-    t.value = t.value
     return t
 
 @TOKEN(r'(?i)' + '|'.join(months) + '|'.join(months_abbrev))
@@ -463,8 +455,8 @@ def t_MONTH(t):
     t.value = Month(t.value)
     return t
 
-def t_CYCLIC_OP(t):
-    r'(?i)(next|last|first)'
+def t_INDEXABLE_OP(t):
+    r'(?i)(next|last|first|prev(ious)?)'
     return t
 
 def get_closest_week_day(week_day):
@@ -563,6 +555,14 @@ class Month:
     def __str__(self):
         return self.name
 
+class Basedate:
+    def __init__(self, year, month):
+        self.year = year
+        self.month = month
+
+    def __str__(self):
+        return datetime(self.year, self.month, 1).strftime(config.basedate_output_format)
+
 names = {
             'day'       : lambda t                           : t.day,
             'month'     : lambda t                           : t.month,
@@ -582,12 +582,12 @@ names = {
 precedence = (
     ('right',
         'UMINUS',
+        'NAME',
         ),
     ('left',
         'UNIT',
         'PLUS',
         'MINUS', 
-        'NAME',
         ),
     )
 
@@ -781,30 +781,53 @@ def string_to_common_weekday(weekday):
 
 def cyclic(t, direction):
     cyclic_direction = datetime.now()
+    found = False
     for _ in range(7):
         cyclic_direction += timedelta(days=direction)
-        if days[cyclic_direction.weekday()].lower() == str(t).lower():
+        if days[cyclic_direction.weekday()].lower().startswith(str(t).lower()):
+            found = True
             break
+    if not found:
+        raise Exception('Cyclic operation fatal error')
     return cyclic_direction.date()
 
-def p_expression_relativedelta(p):
-    '''expression : relativedelta IN MONTH
-                  | relativedelta IN INTEGER
-                  | relativedelta IN BASEDATE
-                  | relativedelta 
+def get_relative_basedate(direction):
+    cyclic_direction = datetime.now()
+    reference_month = cyclic_direction.month
+    while reference_month == cyclic_direction.month:
+        cyclic_direction += timedelta(days=direction)
+    return datetime(cyclic_direction.year, cyclic_direction.month, 1)
+    # return Basedate(cyclic_direction.year, cyclic_direction.month)
+
+def p_expression_relativeindex(p):
+    '''expression : relativeindex IN MONTH
+                  | relativeindex IN INTEGER
+                  | relativeindex IN BASEDATE
+                  | relativeindex IN relativeindex
+                  | relativeindex
                   '''
-    direction, weekday = p[1]
+    direction, operand = p[1]
     if len(p) > 2:
         if type(p[3]) == int:
-            p[0] = get_extremity_weekday_of_year(direction, weekday, p[3])
+            p[0] = get_extremity_weekday_of_year(direction, operand, p[3])
         if type(p[3]) == datetime:
-            p[0] = get_extremity_weekday_of_basedate(direction, weekday, p[3])
+            p[0] = get_extremity_weekday_of_basedate(direction, operand, p[3])
+        if type(p[3]) == tuple:
+            direction2, operand2 = p[3]
+            leap2 = 1 if direction2  == 'next' else -1
+            p[3] = get_relative_basedate(leap2)
+            p_expression_relativeindex(p)
     elif direction in ['next', 'last']:
         leap = 1 if direction  == 'next' else -1
-        p[0] = cyclic(weekday, leap)
+        if operand == 'month':
+            p[0] = get_relative_basedate(leap)
+        else:
+            p[0] = cyclic(operand, leap)
 
-def p_relativedelta_cyclic_op(p):
-    'relativedelta : CYCLIC_OP WEEKDAY'
+def p_relativeindex_indexable_op(p):
+    '''relativeindex : INDEXABLE_OP WEEKDAY
+                     | INDEXABLE_OP MONTH_LITERAL
+                     '''
     p[0] = (p[1],p[2])
 
 def delta_to_unit(delta, unit):
