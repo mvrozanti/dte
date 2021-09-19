@@ -280,7 +280,7 @@ REGEX_0_59 = r'([0-5]?[0-9])'
 
 DATETIME_REGEX = \
     f'(?i)(?:{REGEX_DOY}\s?|' + \
-        f'(?:(\d)\s+([aApP][mM])|' + \
+        f'(?:(1[0-2]|[0-9])\s+([aApP][mM])|' + \
             f'{REGEX_0_59}([hHm])?' + \
                 f'(?::{REGEX_0_59}([msS])?' + \
                     f'(?::(?:{REGEX_0_59}([sS])?))?' + \
@@ -288,6 +288,7 @@ DATETIME_REGEX = \
          ')(?:\s+([aApP][mM]))?' + \
      ')' + '{1,2}'
 
+# print(DATETIME_REGEX)
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
     date_str,\
@@ -427,7 +428,6 @@ BASEDATE_REGEX = r'(?i)(?:' + \
         r'(\d+)(?!:|\+)\W'+REGEX_1_12 + \
         ')'
 
-# print(BASEDATE_REGEX)
 @TOKEN(BASEDATE_REGEX)
 def t_BASEDATE(t):
     m1,y1,y2,m2,y3,m3 = re.search(BASEDATE_REGEX, t.value).groups()
@@ -686,7 +686,7 @@ def p_expression_binop(p):
         raise Exception(f'Can\'t add two dates: {p[1]} + {p[3]}')
 
     if p[1] is None or p[3] is None:
-        raise Exception(f'In {p[2]} expr, p[1]={p[1]} and p[3]={p[3]}')
+        raise Exception(f'In {p[2]} expression, both operands are None')
 
     if type(p[1]) == Weekday:
         p[1] = get_closest_week_day(str(p[1]))
