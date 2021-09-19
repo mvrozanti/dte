@@ -414,10 +414,11 @@ def get_month_index_by_name(month_name):
                 return month_collection.index(month) + 1
 
 REGEX_1_12 = '(1[0-2]|[1-9])'
+REGEX_1_12_OPTIONALLY_PADDED = '(1[0-2]|0?[0-9])'
 BASEDATE_REGEX = r'(?i)(?:' + \
         r'('+REGEX_ALL_MONTHS+r')(?!:|\+)\W(\d+)|' + \
         r'(\d+)(?!:|\+)\W('+REGEX_ALL_MONTHS+')|' + \
-        r'(\d+)(?!:|\+)\W'+REGEX_1_12 + \
+        r'(\d+)(?!:|\+)\W'+REGEX_1_12_OPTIONALLY_PADDED + \
         ')'
 
 @TOKEN(BASEDATE_REGEX)
@@ -458,6 +459,26 @@ def t_MONTH(t):
 def t_INDEXABLE_OP(t):
     r'(?i)(next|last|first|prev(ious)?)'
     return t
+
+def get_closest_month(month):
+    counter_next = 0
+    counter_prev = 0
+    next_date = datetime.now()
+    month_index = get_month_index_by_name(month.name)
+    for _ in range(7):
+        next_date += relativedelta(months=1)
+        counter_next += 1
+        if months[next_date.month-1].lower() == month.name:
+            break
+    prev_date = datetime.now()
+    for _ in range(7):
+        prev_date += relativedelta(months=-1)
+        counter_prev += 1
+        if months[prev_date.month-1].lower() == month.name:
+            break
+    if counter_next < counter_prev:
+        return next_date.date()
+    return prev_date.date()
 
 def get_closest_week_day(week_day):
     counter_next = 0
@@ -812,6 +833,9 @@ def p_expression_relativeindex(p):
             p[0] = get_extremity_weekday_of_year(direction, operand, p[3])
         if type(p[3]) == datetime:
             p[0] = get_extremity_weekday_of_basedate(direction, operand, p[3])
+        if type(p[3]) == Month:
+            closest_month = get_closest_month(p[3])
+            p[0] = get_extremity_weekday_of_basedate(direction, operand, closest_month)
         if type(p[3]) == tuple:
             direction2, operand2 = p[3]
             leap2 = 1 if direction2  == 'next' else -1

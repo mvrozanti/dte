@@ -135,7 +135,7 @@ The output format for time is configurable via the 'clock' key.
 - [x] add `6 pm`
 - [x] in keyword
   - [x] `first/last friday in 2014` - extremity
-  - [ ] `first/last friday in April` - extremity
+  - [x] `first/last friday in April` - extremity
   - [x] `first/last friday in next month` - extremity
   - [x] `first/last friday in 2014 April ` - extremity
   - [ ] `INTEGERth WEEKDAY IN BASEDATE` - extremity?
