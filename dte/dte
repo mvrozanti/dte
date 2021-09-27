@@ -449,6 +449,7 @@ def t_UNIT(t):
 WEEKDAY_TOKEN = r'(?i)Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon(?!th)|Tue|Wed|Thu|Fri|Sat|Sun'
 @TOKEN(WEEKDAY_TOKEN)
 def t_WEEKDAY(t):
+    t.value = Weekday(t.value)
     return t
 
 @TOKEN(r'(?i)' + '|'.join(months) + '|'.join(months_abbrev))
@@ -477,27 +478,43 @@ def get_closest_month(month):
         if months[prev_date.month-1].lower() == month.name:
             break
     if counter_next < counter_prev:
-        return next_date.date()
-    return prev_date.date()
+        return next_date.date().replace(day=1)
+    return prev_date.date().replace(day=1)
 
 def get_closest_week_day(week_day):
     counter_next = 0
     counter_prev = 0
     next_date = datetime.now()
-    for _ in range(7):
-        next_date += timedelta(days=1)
-        counter_next += 1
-        if days[next_date.weekday()].lower() == week_day.lower():
-            break
-    prev_date = datetime.now()
-    for _ in range(7):
-        prev_date += timedelta(days=-1)
-        counter_prev += 1
-        if days[prev_date.weekday()].lower() == week_day.lower():
-            break
-    if counter_next < counter_prev:
-        return next_date.date()
-    return prev_date.date()
+    found = False
+    if days[next_date.weekday()] == week_day.lower() \
+        or days_abbrev[next_date.weekday()].lower() == week_day.lower():
+            found = True
+            return next_date.date()
+    else:
+        for _ in range(7):
+            next_date += timedelta(days=1)
+            counter_next += 1
+            if days[next_date.weekday()].lower() == week_day.lower():
+                found = True
+                break
+            if days_abbrev[next_date.weekday()].lower() == week_day.lower():
+                found = True
+                break
+        prev_date = datetime.now()
+        for _ in range(7):
+            prev_date += timedelta(days=-1)
+            counter_prev += 1
+            if days[prev_date.weekday()].lower() == week_day.lower():
+                found = True
+                break
+            if days_abbrev[prev_date.weekday()].lower() == week_day.lower():
+                found = True
+                break
+        if counter_next < counter_prev:
+            return next_date.date()
+        return prev_date.date()
+    if not found:
+        raise Exception('Whoops')
 
 def parse_units(units_vals):
     parsed = timedelta()
@@ -676,6 +693,9 @@ def p_expression_binop(p):
     '''expression : expression PLUS expression
                   | expression MINUS expression
                   '''
+    if type(p[1]) == str:
+        p[1] = Weekday(p[1])
+    
     if type(p[1]) == time and type(p[3]) == timedelta:
         p[1] = time2timedelta(p[1])
 
@@ -765,6 +785,8 @@ def p_expression_funcall(p):
         raise Exception("Undefined name '%s'" % p[1])
 
 def get_extremity_weekday_of_year(direction, weekday, year):
+    if type(weekday) is Weekday:
+        weekday = weekday.name
     if direction == 'last':
         target = date(year+1,1,1) - timedelta(days=1)
     elif direction == 'first':
@@ -778,11 +800,16 @@ def get_extremity_weekday_of_year(direction, weekday, year):
     return target
 
 def get_extremity_weekday_of_basedate(direction, weekday, basedate):
+    if type(weekday) is Weekday:
+        weekday = weekday.name
     if direction == 'last':
         target = basedate + relativedelta(months=1, days=-1)
     elif direction == 'first':
         target = basedate
-    weekday_ix = [wd.lower() for wd in days].index(weekday)
+    try:
+        weekday_ix = [wd.lower() for wd in days].index(weekday)
+    except:
+        weekday_ix = [wd.lower() for wd in days_abbrev].index(weekday)
     while target.weekday() != weekday_ix:
         if direction == 'first':
             target += timedelta(days=1)

@@ -113,6 +113,7 @@ test_expectancy = OrderedDict({
         'weekday 0'                             : lambda r: r in ['Wednesday', 'Thursday'],
         'Jan 2014'                              : lambda r: r == '2014-01-01',
         'first friday in April 2014'            : lambda r: r == '2014-04-04',
+        'first sun in April 2021'               : lambda r: r == '2021-04-04',
         'yd-5h'                                 : lambda r: re.match(ISO_FORMAT, r),
         '1957-12-26 22:22:22 in unix'           : lambda r: -379118258 - 86400 < int(r) < -379118258 + 86400,
         '5m+5m'                                 : lambda r: r == '0:10:00',
@@ -124,13 +125,14 @@ test_expectancy = OrderedDict({
         'seconds until 11 pm'                   : lambda r: 0 < float(r) < 82800,
         'next month'                            : lambda r: re.match(BASEDATE_FORMAT, r),
         'first friday in next month'            : lambda r: re.match(YMD_FORMAT, r),
-        'first friday in april'                 : lambda r: re.match(YMD_FORMAT, r) and r.split('-')[1] == '05',
+        'first friday in april'                 : lambda r: re.match(YMD_FORMAT, r) and r.split('-')[1] == '04',
         '2014 01'                               : lambda r: re.match(YMD_FORMAT, r), 
         # 'monday+1d'                           : lambda r: False,
         # 'april+1d'                           : lambda r: False,
         # '1st weekday in august'                 : lambda r: False,
         # 'day of week 0'                         : lambda r: False,
         # 'seconds in 24h'                        : lambda r: False,
+        # 'today==mon'                        : lambda r: False,
         })
 
 def run(test):
