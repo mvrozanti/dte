@@ -1,7 +1,7 @@
 #!/usr/bin/env -S python -m pytest 
 from collections import OrderedDict
 from io import StringIO
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 import code
 import os
 from os import path as op
@@ -71,7 +71,6 @@ test_expectancy = OrderedDict({
         '1610494238.dow'                        : lambda r: r == 'Tuesday',
         '12h:00 AM != 12h:00 PM'                : lambda r: eval(r),
         '2014 Jan 13==2014 January 13'          : lambda r: eval(r),
-        'help'                                  : lambda r: len(r) > 1500,
         '1957-12-26 - t'                        : lambda r: re.match(DELTA_FORMAT, r),
         '1957-12-26 22:22:22 - t'               : lambda r: re.match(DELTA_FORMAT, r),
         '1958-05-14 - 1958-05-16'               : lambda r: r == '-2 days, 0:00:00',
@@ -145,13 +144,24 @@ def run(test):
     out = out.decode('utf-8').replace('\n','')
     return out,err
 
+def make_documentation(test_out):
+    import pathlib
+    le_path = pathlib.Path(__file__).parent.resolve()
+    call(['sed', '-i', '/BEGIN EXAMPLES/q', f'{le_path}/../README.md'])
+    with open('../README.md', 'a') as f:
+        for test,out in test_out.items():
+            f.write('`' + test + '` returns `' + out + '`\n\n')
+
 class Tester(unittest.TestCase):
 
     def test_stuff(self):
+        test_out = OrderedDict()
         for test,expectancy in test_expectancy.items():
             try:
                 out,err = run(test)
+                test_out[test] = out
                 assert expectancy(out) and not err
             except Exception as e:
                 print(test)
                 raise e
+        make_documentation(test_out)
