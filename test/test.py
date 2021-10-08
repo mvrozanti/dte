@@ -131,6 +131,8 @@ test_expectancy = OrderedDict({
         'last fri in 2014 December'             : lambda r: re.match(YMD_FORMAT, r),
         'last fri in 2014 Dec'                  : lambda r: re.match(YMD_FORMAT, r),
         'last fri in Dec 2014'                  : lambda r: re.match(YMD_FORMAT, r),
+        'yesterday==thursday'                   : lambda r: r in ['True', 'False'],
+        'yesterday==thu'                        : lambda r: r in ['True', 'False'],
         # 'monday+1d'                           : lambda r: False,
         # 'april+1d'                           : lambda r: False,
         # '1st weekday in august'                 : lambda r: False,

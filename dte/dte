@@ -753,6 +753,13 @@ def p_expression_comparison(p):
     if type(p[3]) == date and type(p[1]) == datetime:
         p[3] = datetime.combine(p[3], datetime.min.time())
 
+    if type(p[1]) == Weekday and type(p[3]) == date:
+        p[0] = dow(p[3]).lower().startswith(p[1].name.lower())
+        return
+
+    if type(p[3]) == Weekday and type(p[1]) == date:
+        p[0] = dow(p[1]).lower().startswith(p[3].name.lower())
+        return
     try:
         if p[2] == '<':
             p[0] = p[1] < p[3]
@@ -972,7 +979,7 @@ def current_time_routine():
     names['n'] = names['now'] = names['N'] = names['NOW'] = datetime.now()
     names['today'] = names['T'] = names['t'] = names['TODAY'] = datetime.today().date()
     names['tomorrow'] = names['tm'] = names['TM'] = names['TOMORROW'] = datetime.today().date() + timedelta(days=1)
-    names['yd'] = names['YD'] = datetime.today().date() - timedelta(days=1)
+    names['YESTERDAY'] = names['yesterday'] = names['yd'] = names['YD'] = datetime.today().date() - timedelta(days=1)
 
 def interactive():
     import cmd
