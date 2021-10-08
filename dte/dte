@@ -304,8 +304,9 @@ def t_DATETIME(t):
     if t.value.count(':') == 1 and \
             not first_unit and not second_unit \
                 and not third_unit and not third_val:
-                    raise Exception(f'Did you mean {first_val}h:{second_val} or ' + \
-                                                  '{first_val}m:{second_val}?')
+                    first_unit='h'
+                    # raise Exception(f'Did you mean {first_val}h:{second_val} or ' + \
+                    #                               f'{first_val}m:{second_val}?')
 
     if ampm is not None and \
             (first_unit == 'h' or \
@@ -755,11 +756,24 @@ def p_expression_comparison(p):
 
     if type(p[1]) == Weekday and type(p[3]) == date:
         p[0] = dow(p[3]).lower().startswith(p[1].name.lower())
+        if p[2] == '!=':
+            p[0] = not p[0]
+        elif p[2] == '==':
+            pass
+        else:
+            raise Exception('To be implemented')
         return
 
     if type(p[3]) == Weekday and type(p[1]) == date:
         p[0] = dow(p[1]).lower().startswith(p[3].name.lower())
+        if p[2] == '!=':
+            p[0] = not p[0]
+        elif p[2] == '==':
+            pass
+        else:
+            raise Exception('To be implemented')
         return
+
     try:
         if p[2] == '<':
             p[0] = p[1] < p[3]

@@ -99,6 +99,8 @@ test_expectancy = OrderedDict({
         'YD.day'                                : lambda r: re.match(r'\d+', r),
         'n'                                     : lambda r: re.match(ISO_FORMAT, r),
         'next Sunday'                           : lambda r: re.match(YMD_FORMAT, r),
+        '2000-10-10 00:16'                      : lambda r: r == '2000-10-10 00:16:00',
+        '2000-10-10 16:00'                      : lambda r: r == '2000-10-10 16:00:00',
         'seconds until 3000 Apr 10'             : lambda r: 30899416627.60163 > float(r),
         'seconds since 3000 Apr 10'             : lambda r: -30899416627.60163 < float(r),
         'next Sunday == last sunday'            : lambda r: r == 'False',
