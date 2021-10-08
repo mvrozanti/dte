@@ -72,12 +72,15 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [x] continuous integration
 - [x] parse month & abbrev
 - [x] parse weekday & abbrev
+- [ ] add `show` function
+  - [ ] show clock for time
+  - [ ] show cal for date and basedate
 
 # Examples
 The following examples are generated based on tests run, so many results will be relative to the day it was tested. Every expression on the left side is valid syntax.
 
 [//]: <> (BEGIN EXAMPLES)
-`(T-1d).dow` returns `Sunday`
+`(T-1d).dow` returns `Thursday`
 
 `(n + 180d)-180d == n` returns `True`
 
@@ -85,19 +88,19 @@ The following examples are generated based on tests run, so many results will be
 
 `(t + 180d)-180d == t` returns `True`
 
-`-1d.dow` returns `Sunday`
+`-1d.dow` returns `Thursday`
 
 `08h30` returns `8:30:00`
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18897 days, 14:15:39.405852`
+`n - 1234` returns `18908 days, 13:41:51.023937`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-19438573.623969`
+`seconds until 2021 feb 14 12:00:00` returns `-20386945.248487`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -167,9 +170,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2014 Jan 13==2014 January 13` returns `True`
 
-`1957-12-26 - t` returns `-23286 days, 0:00:00`
+`1957-12-26 - t` returns `-23297 days, 0:00:00`
 
-`1957-12-26 22:22:22 - t` returns `-23286 days, 22:22:22`
+`1957-12-26 22:22:22 - t` returns `-23297 days, 22:22:22`
 
 `1958-05-14 - 1958-05-16` returns `-2 days, 0:00:00`
 
@@ -199,33 +202,33 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2348 days, 3:02:00.999950`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999941`
 
-`7y6M5w4d3h2m1.1s` returns `2777 days, 3:02:01.099955`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099956`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `91 days, 2:59:59.999971`
+`3h+3M` returns `92 days, 2:59:59.999970`
 
-`3M` returns `90 days, 23:59:59.999956`
+`3M` returns `91 days, 23:59:59.999972`
 
-`T-1.5d` returns `2021-09-25 12:00:00`
+`T-1.5d` returns `2021-10-06 12:00:00`
 
-`T-10d` returns `2021-09-17`
+`T-10d` returns `2021-09-28`
 
-`T.day` returns `27`
+`T.day` returns `8`
 
-`T.dow` returns `Monday`
+`T.dow` returns `Friday`
 
-`YD.day` returns `26`
+`YD.day` returns `7`
 
-`n` returns `2021-09-27 11:36:18.363850`
+`n` returns `2021-10-08 11:02:29.772581`
 
-`next Sunday` returns `2021-10-03`
+`next Sunday` returns `2021-10-10`
 
-`seconds until 3000 Apr 10` returns `30879491021.494247`
+`seconds until 3000 Apr 10` returns `30878542650.072475`
 
-`seconds since 3000 Apr 10` returns `-30879491021.42555`
+`seconds since 3000 Apr 10` returns `-30878542650.00259`
 
 `next Sunday == last sunday` returns `False`
 
@@ -239,7 +242,7 @@ The following examples are generated based on tests run, so many results will be
 
 `first sunday in 2021` returns `2021-01-03`
 
-`t - next Sunday` returns `-6 days, 0:00:00`
+`t - next Sunday` returns `-2 days, 0:00:00`
 
 `wait .001s` returns ``
 
@@ -251,7 +254,7 @@ The following examples are generated based on tests run, so many results will be
 
 `first sun in April 2021` returns `2021-04-04`
 
-`yd-5h` returns `2021-09-25 19:00:00`
+`yd-5h` returns `2021-10-06 19:00:00`
 
 `1957-12-26 22:22:22 in unix` returns `-379118258`
 
@@ -265,106 +268,25 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `44619.97283`
+`seconds until tomorrow` returns `46648.550708`
 
-`seconds until 11 pm` returns `41019.905626`
+`seconds until 11 pm` returns `43048.460569`
 
-`next month` returns `2021-10-01`
+`next month` returns `2021-11-01`
 
-`first friday in next month` returns `2021-10-01`
+`first friday in next month` returns `2021-11-05`
 
 `first friday in april` returns `2021-04-02`
 
 `2014 01` returns `2014-01-01`
 
-<!-- ## Examples -->
-<!--  -->
-<!-- ### date -->
-<!-- `dte 1752 Sep 1` - returns that date -->
-<!--  -->
-<!-- `dte 1752 September 1 12 AM` - returns that date time -->
-<!--  -->
-<!-- `dte today - 1957-12-26 in days` - returns 23273.0 at the time of writing -->
-<!--  -->
-<!-- ### time -->
-<!-- `dte 12h:00 AM + 4h` - returns 16:00:00  -->
-<!--  -->
-<!-- `dte 6 pm` - returns 18:00:00  -->
-<!--  -->
-<!-- `dte 23h:23` - returns 23:23:00 -->
-<!--  -->
-<!-- `dte 23m:23` - returns 00:23:23 -->
-<!--  -->
-<!-- The output format for time is configurable via the 'clock' key. -->
-<!--  -->
-<!-- ### week days -->
-<!-- `dte monday` - returns the closest weekday date -->
-<!--  -->
-<!-- `dte last tuesday` - returns last tuesday's date -->
-<!--  -->
-<!-- `dte next tue` - returns next tuesday's date -->
-<!--  -->
-<!-- `dte 1611193453.dow` - returns `wednesday` in UTC-03:00 -->
-<!--  -->
-<!-- ### the `in` keyword -->
-<!--  -->
-<!-- `dte 1d in hours` - returns the amount of hours in a day -->
-<!--  -->
-<!-- `dte 1 day in hours` - returns the same as above -->
-<!--  -->
-<!-- `dte 2 hours 2 minutes in days` - returns 0.08472222222222221  -->
-<!--  -->
-<!-- `dte 1959 May 26 in unix` - returns the unix timestamp for the point in time -->
-<!--  -->
-<!-- ### the `until` keyword -->
-<!--  -->
-<!-- `dte seconds until tomorrow` - returns the amount of seconds until tomorrow -->
-<!--  -->
-<!-- `dte seconds until 3000 Apr 10` - returns the amount of seconds until date -->
-<!--  -->
-<!-- ### extremities -->
-<!--  -->
-<!-- `dte last sunday in 2021` - returns 2021-12-26 -->
-<!--  -->
-<!-- `dte first sunday in 2021` - returns 2021-01-03 -->
-<!--  -->
-<!-- ### basedate -->
-<!--  -->
-<!-- `dte 2021 Mar` - returns the specified first day of that basedate -->
-<!--  -->
-<!-- `dte days until Mar 2021` - returns the amount of days until the first day of base date -->
-<!--  -->
-<!-- `dte last sunday in Jan 2021` - returns 2021-01-31 -->
-<!--  -->
-<!-- ### operators -->
-<!--  -->
-<!-- `dte '2020 Jan 27 + 1y  == 2021 Jan 26'` - returns `True` -->
-<!--  -->
-<!-- `dte '12h:00 AM != 12h:00 PM'` - returns True -->
-<!--  -->
-<!-- ### delta declaration and operations -->
-<!-- `dte 1d` - declares a one day timedelta -->
-<!--  -->
-<!-- `dte 7y6M5w4d3h2m1s` - represents 2776 days, 3:02:00 -->
-<!--  -->
-<!-- `dte 1d2m+2m+3h` - results in 1 day, 3:04:00 -->
-<!--  -->
-<!-- `dte -100.5d` - accepts negative and/or floating point values -->
-<!--  -->
-<!-- ### and in case you need it -->
-<!-- `dte help` - prints a detailed manual -->
-<!--  -->
-<!-- ### locali(z|s)ation -->
-<!-- `dte 2020 Okt 10` - would be valid input if user's locale is German -->
-<!--  -->
-<!-- ## Configuration File -->
-<!--  -->
-<!-- `dte` tries to read a `config.json` file under config directory (`~/.config/dte/` on Linux). In it you can set the following options: -->
-<!-- @ -148,6 +68,212 @@ The output format for time is configurable via the 'clock' key. -->
-<!--   - [ ] months -->
-<!--   - [ ] units given current datetime field or second hand of `in` keyword -->
-<!-- - [ ] run tests across a variety of locales -->
-<!-- - [x] unify documentation by using tests -->
-<!-- - [x] continuous integration -->
-<!-- - [x] parse month & abbrev -->
-<!-- - [x] parse weekday & abbrev -->
+`6pm+1h` returns `19:00:00`
+
+`days until 2030-12-25` returns `3364.53990768368`
+
+`last fri in 2014 December` returns `2014-12-26`
+
+`last fri in 2014 Dec` returns `2014-12-26`
+
+`last fri in Dec 2014` returns `2014-12-26`
+

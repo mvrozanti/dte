@@ -381,7 +381,7 @@ unit_map = {
 SHORT_UNITS_STR = ''.join(unit_map.keys())
 LONG_UNITS_STR = '(?:'+'?|'.join(set(unit_map.values()))+'?)' 
 FLOATING_POINT = r'((?:\d*[.])?\d+)'
-UNFINISHED_LAST_UNIT_DELTA = f'(?:[ \t]*{FLOATING_POINT}\s*({LONG_UNITS_STR}|[{SHORT_UNITS_STR}])'
+UNFINISHED_LAST_UNIT_DELTA = f'(?:[ \t]*{FLOATING_POINT}\s*({LONG_UNITS_STR}|[{SHORT_UNITS_STR}](?!ec))'
 OMITTABLE_LAST_UNIT_DELTA = f'{UNFINISHED_LAST_UNIT_DELTA}?)'
 DELTA_TOKEN = f'{UNFINISHED_LAST_UNIT_DELTA}){OMITTABLE_LAST_UNIT_DELTA}*' 
 @TOKEN(DELTA_TOKEN)
@@ -912,6 +912,8 @@ def p_expression_unit_until_point(p):
             delta = p[3] - datetime.now()
         if type(p[3]) == time:
             delta = datetime.combine(datetime.today(), p[3]) - datetime.now()
+        if type(p[3]) == date:
+            delta = datetime.combine(p[3], datetime.min.time()) - datetime.now()
         p[0] = delta_to_unit(delta, p[1].lower())
         if p[2] == 'since':
             p[0] = -p[0]
