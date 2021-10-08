@@ -10,12 +10,13 @@ import appdirs
 import calendar
 import code
 import json
-import locale
 import os
 import os.path as op
 import re
 import sys
-import types
+
+import signal
+signal.signal(signal.SIGINT, lambda s,_: sys.exit(0))
 
 def read_write_get_config():
     config_dir = appdirs.user_config_dir()
