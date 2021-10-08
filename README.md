@@ -10,13 +10,15 @@ If you don't think it's intuitive, it's most likely unfinished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
+[![asciicast](https://asciinema.org/a/9vyTkcMoyb58855r36mUw7jAL.svg)](https://asciinema.org/a/9vyTkcMoyb58855r36mUw7jAL)
+
 ## How to use & What to know
 
 `pip install dte`
 
 ### Conventions
 ![relevant xkcd](https://sslimgs.xkcd.com/comics/iso_8601.png)
-- When there is margin for ambiguity, expressions are always interpreted with [highest units appearing before](https://i.imgur.com/y2tBVHx.png), e.g.: `2021-06-13`, `2023 August 27` or `2019 Jul 20`
+- When there is margin for ambiguity, expressions are always interpreted with [highest units appearing before, complying with ISO-8601](https://preview.redd.it/2vjzrsib7ci61.png?width=2800&format=png&auto=webp&s=944b5176432419338cb2b13aeac10e61da1221f9), e.g.: `2021-06-13`, `2023 August 27` or `2019 Jul 20`
 - Unix timestamps are both interpreted and output in seconds by default, but this is configurable
 - When specifying time, just remember that `M` is for month and `m` is for minute
 - Although english month and week-day names are always recognized, so are the names in the user's locale
