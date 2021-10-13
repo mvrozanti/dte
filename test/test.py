@@ -111,7 +111,7 @@ test_expectancy = OrderedDict({
         't - next Sunday'                       : lambda r: re.match(DELTA_FORMAT, r),
         'wait .001s'                            : lambda r: len(r) == 0,
         'weekday 0'                             : lambda r: r in ['Wednesday', 'Thursday'],
-        'Jan 2014'                              : lambda r: r == '2014-01-01',
+        'Jan 2014'                              : lambda r: re.match(BASEDATE_FORMAT, r),
         'first friday in April 2014'            : lambda r: r == '2014-04-04',
         'first sun in April 2021'               : lambda r: r == '2021-04-04',
         'yd-5h'                                 : lambda r: re.match(ISO_FORMAT, r),
@@ -126,7 +126,7 @@ test_expectancy = OrderedDict({
         'next month'                            : lambda r: re.match(BASEDATE_FORMAT, r),
         'first friday in next month'            : lambda r: re.match(YMD_FORMAT, r),
         'first friday in april'                 : lambda r: re.match(YMD_FORMAT, r) and r.split('-')[1] == '04',
-        '2014 01'                               : lambda r: re.match(YMD_FORMAT, r), 
+        '2014 01'                               : lambda r: re.match(BASEDATE_FORMAT, r), 
         '6pm+1h'                                : lambda r: re.match(HMS_FORMAT, r),
         'days until 2030-12-25'                 : lambda r: float(r) < 3364.55,
         'last fri in 2014 December'             : lambda r: re.match(YMD_FORMAT, r),
@@ -145,12 +145,16 @@ test_expectancy = OrderedDict({
         'days until mon'                        : lambda r: -3.5 < float(r) < 3.5,
         'today==mon'                            : lambda r: r in ['True', 'False'],
         'seconds in 24h'                        : lambda r: float(r) == 86400,
-        # '2014 Jan + 1M'                    : lambda r: ,
-        # 'april+1M'                            : lambda r: False, # is anyone ever gonna use it this?
-        # '1st weekday in august'                 : lambda r: False,
-        # 't+1d 08h30'                        : lambda r: False,
-        # '(2020-10-10+1d) 08h30'        
-        # 't 1am'                        : lambda r: False,
+        'Jan 2014 + 1M'                         : lambda r: re.match(ISO_FORMAT, r),
+        '2014 Jan + 1M'                         : lambda r: re.match(ISO_FORMAT, r),
+        '-1d + 2020-10-10'                      : lambda r: r == '2020-10-09',
+        # '1st WEEKDAY in august'                 : lambda r: False,
+        # 'third week in september'               : lambda r: False,
+        # 'august'                                : lambda r: re.match(BASEDATE_FORMAT, r),
+        # 't+1d 08h30'                            : lambda r: False,
+        # '(2020-10-10+1d) 08h30'                 : lambda r: False, 
+        # 't 1am'                                 : lambda r: False,
+        # 'april+1M'                              : lambda r: False, # ???
         })
 
 

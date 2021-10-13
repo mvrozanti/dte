@@ -174,9 +174,8 @@ FUNCTIONS / ATTRIBUTES
 
     last WEEKDAY         : returns the date for the last weekday
 
-    dayofweek TIME_POINT : returns weekday for time point
-        weekday  TIME_POINT  |
-        TIME_POINT.weekday   |
+    weekday TIME_POINT   : returns weekday for time point
+    TIME_POINT.weekday   |
 
 STDIN & ARGUMENTS
 
@@ -295,7 +294,7 @@ REGEX_ALL_MONTHS = r'|'.join(months) + r'|' + \
                    r'|'.join(months_en_abbrev)
 REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
         REGEX_ALL_MONTHS + \
-        r')[\W\s]+\d+)'
+        r')(?:\s|[^\w\+])+\d+)'
 REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
@@ -307,7 +306,6 @@ DATETIME_REGEX = \
     f'(?::(?:{REGEX_0_59}([sS])?))?' + \
     r'))(?:\s*([aApP][mM]))?' + \
     '){1,2}'
-
 
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
@@ -453,7 +451,7 @@ def get_month_index_by_name(month_name):
 REGEX_1_12 = '(1[0-2]|[1-9])'
 REGEX_1_12_OPTIONALLY_PADDED = '(1[0-2]|0?[0-9])'
 BASEDATE_REGEX = r'(?i)(?:' + \
-        r'('+REGEX_ALL_MONTHS+r')(?!:|\+)\W(\d+)|' + \
+        r'('+REGEX_ALL_MONTHS+r')(?!:|\+)\W+(\d+)|' + \
         r'(\d+)(?!:|\+)\W('+REGEX_ALL_MONTHS+')|' + \
         r'(\d+)(?!:|\+)\W'+REGEX_1_12_OPTIONALLY_PADDED + \
         ')'
@@ -475,7 +473,7 @@ def t_BASEDATE(t):
     month_index = get_month_index_by_name(month)
     if not month_index:
         month_index = int(month)
-    t.value = datetime(year, month_index, 1)
+    t.value = Basedate(year, month_index)
     return t
 
 
@@ -655,6 +653,9 @@ class Basedate:
         self.year = year
         self.month = month
 
+    def to_datetime(self):
+        return datetime(self.year, self.month, 1)
+
     def __str__(self):
         return datetime(self.year, self.month, 1).strftime(
                 config.basedate_output_format)
@@ -677,7 +678,6 @@ names = {
 precedence = (
                 ('right',
                     'UMINUS',
-                    'NAME',
                 ),  # noqa: E124
                 ('left',
                     'UNIT',
@@ -764,6 +764,15 @@ def p_expression_binop(p):
     if type(p[1]) == str:
         p[1] = Weekday(p[1])
 
+    if type(p[3]) == str:
+        p[3] = Weekday(p[3])
+
+    if type(p[3]) == Basedate:
+        p[3] = p[3].to_datetime()
+
+    if type(p[1]) == Basedate:
+        p[1] = p[1].to_datetime()
+
     if type(p[1]) == time and type(p[3]) == timedelta:
         p[1] = time2timedelta(p[1])
 
@@ -781,6 +790,9 @@ def p_expression_binop(p):
 
     if type(p[3]) == datetime and type(p[1]) == relativedelta:
         p[1] = datetime.now() - p[1]
+
+    if type(p[3]) == date and type(p[1]) == timedelta:
+        p[3] = datetime.combine(p[3], datetime.min.time())
 
     if type(p[1]) == date and type(p[3]) == timedelta:
         p[1] = datetime.combine(p[1], datetime.min.time())
@@ -943,7 +955,6 @@ def get_relative_basedate(direction):
     while reference_month == cyclic_direction.month:
         cyclic_direction += timedelta(days=direction)
     return datetime(cyclic_direction.year, cyclic_direction.month, 1)
-    # return Basedate(cyclic_direction.year, cyclic_direction.month)
 
 
 def p_point_relativeindex(p):
@@ -957,6 +968,8 @@ def p_point_relativeindex(p):
     if len(p) > 2:
         if type(p[3]) == int:
             p[0] = get_extremity_weekday_of_year(direction, operand, p[3])
+        if type(p[3]) == Basedate:
+            p[3] = p[3].to_datetime()
         if type(p[3]) == datetime:
             p[0] = get_extremity_weekday_of_basedate(direction, operand, p[3])
         if type(p[3]) == Month:
@@ -1028,11 +1041,13 @@ def p_expression_unit_until_point(p):
             p[0] = -p[0]
         if timeflag:
             if p[0] < 0:
-               if p[2] == 'until':
-                  p[3] = datetime.combine(datetime.today(), p[3]) + timedelta(days=1)
-               if p[2] == 'since':
-                  p[3] = datetime.combine(datetime.today(), p[3]) - timedelta(days=1)
-               p_expression_unit_until_point(p)
+                if p[2] == 'until':
+                    p[3] = datetime.combine(datetime.today(), p[3]) + \
+                            timedelta(days=1)
+                if p[2] == 'since':
+                    p[3] = datetime.combine(datetime.today(), p[3]) - \
+                            timedelta(days=1)
+                p_expression_unit_until_point(p)
 
     else:
         raise Exception('Invalid syntax: {p[1]} {p[2]} {p[3]}')
@@ -1055,7 +1070,7 @@ def p_timestamp_integer(p):
     p[0] = datetime.fromtimestamp(ts)
 
 
-def p_statement_point_in_unit(p):
+def p_expression_point_in_unit(p):
     'expression : UNIT IN DELTA'
     aux = p[3]
     p[3] = p[1]
@@ -1075,10 +1090,9 @@ def p_statement_expression_in_unit(p):
 
 
 def p_point(p):
-    '''point :
-             | timestamp
-             | DATETIME
+    '''point : timestamp
              | BASEDATE
+             | DATETIME
              | MONTH
              | WEEKDAY
              | YEAR
@@ -1102,7 +1116,7 @@ def p_expression_group(p):
 
 
 def p_expression_uminus(p):
-    'expression : MINUS expression %prec UMINUS'
+    'expression : MINUS DELTA %prec UMINUS'
     p[0] = -p[2]
 
 
@@ -1132,7 +1146,7 @@ def interactive():
             if line == 'EOF':
                 exit(0)
             if line.startswith('#'):
-               return
+                return
             current_time_routine()
             yacc.parse(line)
             self.commands.append(line)
