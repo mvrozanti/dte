@@ -162,13 +162,12 @@ test_expectancy = OrderedDict({
         't 1am'                                 : lambda r: re.match(ISO_FORMAT, r),
         't 1:00'                                : lambda r: re.match(ISO_FORMAT, r),
         't 1:00 == t 1am'                       : lambda r: eval(r),
-        # '1am t'                                 : lambda r: re.match(ISO_FORMAT, r),
-        # '1am t == t 1am'                        : lambda r: eval(r),
+        '(2020-10-10+1d) 3pm'                   : lambda r: '2020-10-11 15:00:00' == r, 
 
-        # 't+1d 08h30'                            : lambda r: False,
-        # '(2020-10-10+1d) 08h30'                 : lambda r: False, 
+        '1am t'                                 : lambda r: re.match(ISO_FORMAT, r),
+        '1am t == t 1am'                        : lambda r: eval(r),
+        't+1d 08h30'                            : lambda r: re.match(ISO_FORMAT, r),
         # 'april+1M'                              : lambda r: False, # ???
-        # 'third week in september'               : lambda r: False, # ???
         })
 
 

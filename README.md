@@ -78,13 +78,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 19:22:26.488647`
+`n - 1234` returns `18913 days, 20:46:28.747730`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20839380.715629`
+`seconds until 2021 feb 14 12:00:00` returns `-20844422.982575`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -188,13 +188,13 @@ The following examples are generated based on tests run, so many results will be
 
 `6y5M4d3h2m1s` returns `2346 days, 3:02:00.999951`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099956`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099947`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999967`
+`3h+3M` returns `92 days, 2:59:59.999956`
 
-`3M` returns `91 days, 23:59:59.999970`
+`3M` returns `91 days, 23:59:59.999965`
 
 `T-1.5d` returns `2021-10-11 12:00:00`
 
@@ -206,7 +206,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `12`
 
-`n` returns `2021-10-13 16:43:05.420696`
+`n` returns `2021-10-13 18:07:07.800937`
 
 `next Sunday` returns `2021-10-17`
 
@@ -214,9 +214,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878090214.267765`
+`seconds until 3000 Apr 10` returns `30878085171.89848`
 
-`seconds since 3000 Apr 10` returns `-30878090214.192764`
+`seconds since 3000 Apr 10` returns `-30878085171.81591`
 
 `next Sunday == last sunday` returns `False`
 
@@ -264,9 +264,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `26212.356792`
+`seconds until tomorrow` returns `21169.990522`
 
-`seconds until 11 pm` returns `22612.275169`
+`seconds until 11 pm` returns `17569.909667`
 
 `next month` returns `2021-11-01`
 
@@ -282,7 +282,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3359.303375703368`
+`days until 2030-12-25` returns `3359.2450148785997`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -308,17 +308,17 @@ The following examples are generated based on tests run, so many results will be
 
 `next mon + 1d == next tue` returns `True`
 
-`days until next mon` returns `4.303364248935185`
+`days until next mon` returns `4.245002991967593`
 
-`days until mon` returns `-2.6966366495370373`
+`days until mon` returns `-2.754997944803241`
 
 `today==mon` returns `False`
 
 `seconds in 24h` returns `86400.0`
 
-`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999970`
+`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999966`
 
-`2014 Jan + 1M` returns `2014-01-31 23:59:59.999970`
+`2014 Jan + 1M` returns `2014-01-31 23:59:59.999965`
 
 `-1d + 2020-10-10` returns `2020-10-09`
 
@@ -333,4 +333,12 @@ The following examples are generated based on tests run, so many results will be
 `4th wed in august` returns `2021-08-25`
 
 `august` returns `2021-Aug`
+
+`t 1am` returns `2021-10-13 01:00:00`
+
+`t 1:00` returns `2021-10-13 01:00:00`
+
+`t 1:00 == t 1am` returns `True`
+
+`(2020-10-10+1d) 3pm` returns `2020-10-11 15:00:00`
 

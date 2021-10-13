@@ -776,8 +776,9 @@ def p_expression_expression_point(p):
     except TypeError:
         p[0] = datetime.combine(p[2], p[1])
 
-def p_expression_name(p):
-    'expression : NAME'
+
+def p_point_name(p):
+    'point : NAME'
     if p[1] not in names:
         print(f'{p[1]} is not loaded')
         return
