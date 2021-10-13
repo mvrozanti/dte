@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, date, timedelta, time
 from dateutil.relativedelta import relativedelta, MO, TU, WE, TH, FR, SA, SU
@@ -235,6 +236,7 @@ tokens = (
     'SINCE',
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
     'NAME',
+    'ORDINAL',
     'INTEGER',
     'YEAR',
     'MONTH',
@@ -306,6 +308,7 @@ DATETIME_REGEX = \
     f'(?::(?:{REGEX_0_59}([sS])?))?' + \
     r'))(?:\s*([aApP][mM]))?' + \
     '){1,2}'
+
 
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
@@ -412,8 +415,9 @@ unit_map = {
 SHORT_UNITS_STR = ''.join(unit_map.keys())
 LONG_UNITS_STR = '(?:'+'?|'.join(set(unit_map.values()))+'?)'
 FLOATING_POINT = r'((?:\d*[.])?\d+)'
+EXCLUDE_TAIL = '(?!ec|t)'
 UNFINISHED_LAST_UNIT_DELTA = \
-   fr'(?:[ \t]*{FLOATING_POINT}\s*({LONG_UNITS_STR}|[{SHORT_UNITS_STR}](?!ec))'
+   fr'(?:[ \t]*{FLOATING_POINT}\s*({LONG_UNITS_STR}|[{SHORT_UNITS_STR}]{EXCLUDE_TAIL})'
 OMITTABLE_LAST_UNIT_DELTA = f'{UNFINISHED_LAST_UNIT_DELTA}?)'
 DELTA_TOKEN = f'{UNFINISHED_LAST_UNIT_DELTA}){OMITTABLE_LAST_UNIT_DELTA}*'
 
@@ -448,6 +452,9 @@ def get_month_index_by_name(month_name):
                 return month_collection.index(month) + 1
 
 
+t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)'
+
+
 REGEX_1_12 = '(1[0-2]|[1-9])'
 REGEX_1_12_OPTIONALLY_PADDED = '(1[0-2]|0?[0-9])'
 BASEDATE_REGEX = r'(?i)(?:' + \
@@ -477,9 +484,6 @@ def t_BASEDATE(t):
     return t
 
 
-t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)'
-
-
 def t_UNIT(t):
     r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
     return t
@@ -501,8 +505,45 @@ def t_MONTH(t):
     return t
 
 
+class Indexable(Enum):
+    FIRST = 1
+    SECOND = 2
+    THIRD = 3
+    FOURTH = 4
+    FIFTH = 5
+    NEXT = 0
+    LAST = float("inf")
+    PREVIOUS = -1
+
+
+ordinalIndexables = [
+        Indexable.FIRST,
+        Indexable.SECOND,
+        Indexable.THIRD,
+        Indexable.FOURTH,
+        Indexable.FIFTH
+        ]
+
+
 def t_INDEXABLE_OP(t):
-    r'(?i)(next|last|first|prev(ious)?)'
+    r'(?i)(next|last|first|prev(ious)?|1st|2nd|3rd|4th|5th|first|second|third|fourth|fifth)'
+    t.value = t.value.lower()
+    if t.value.startswith('previous'):
+        t.value = Indexable.PREVIOUS
+    if t.value == 'next':
+        t.value = Indexable.NEXT
+    if t.value == 'last':
+        t.value = Indexable.LAST
+    if t.value in ['first', '1st']:
+        t.value = Indexable.FIRST
+    if t.value in ['second', '2nd']:
+        t.value = Indexable.SECOND
+    if t.value in ['third', '3rd']:
+        t.value = Indexable.THIRD
+    if t.value in ['fourth', '4th']:
+        t.value = Indexable.FOURTH
+    if t.value in ['fifth', '5th']:
+        t.value = Indexable.FIFTH
     return t
 
 
@@ -513,13 +554,17 @@ def get_closest_month(month):
     for _ in range(7):
         next_date += relativedelta(months=1)
         counter_next += 1
-        if months[next_date.month-1].lower() == month.name:
+        cur_month_name = months[next_date.month-1].lower() 
+        short_cur_month_name = cur_month_name[:3]
+        if month.name in [cur_month_name, short_cur_month_name]:
             break
     prev_date = datetime.now()
     for _ in range(7):
         prev_date += relativedelta(months=-1)
         counter_prev += 1
-        if months[prev_date.month-1].lower() == month.name:
+        cur_month_name = months[prev_date.month-1].lower() 
+        short_cur_month_name = cur_month_name[:3]
+        if month.name in [cur_month_name, short_cur_month_name]:
             break
     if counter_next < counter_prev:
         return next_date.date().replace(day=1)
@@ -717,6 +762,13 @@ def p_statement_assign(p):
     names[p[1]] = p[3]
 
 
+def normalize(t):
+    if type(t) == datetime and \
+            is_000(t):
+        t = t.date()
+    return t
+
+
 def p_expression_name(p):
     'expression : NAME'
     if p[1] not in names:
@@ -728,17 +780,13 @@ def p_expression_name(p):
         p[0] = names[p[1]]
 
 
-def normalize(t):
-    if type(t) == datetime and \
-            is_000(t):
-        t = t.date()
-    return t
-
-
 def p_statement_expr(p):
     'statement : expression'
     if type(p[1]) is Weekday:
         p[1] = get_closest_week_day(str(p[1]))
+    if type(p[1]) is Month:
+        closest_month = get_closest_month(p[1])
+        p[1] = Basedate(closest_month.year, closest_month.month)
     if type(p[1]) == dateutil._common.weekday:
         p[1] = (datetime.now() - relativedelta(weekday=p[1])).date()
     if type(p[1]) == relativedelta:
@@ -892,36 +940,53 @@ def p_expression_funcall(p):
 def get_extremity_weekday_of_year(direction, weekday, year):
     if type(weekday) is Weekday:
         weekday = weekday.name
-    if direction == 'last':
+    if direction == Indexable.LAST:
         target = date(year+1, 1, 1) - timedelta(days=1)
-    elif direction == 'first':
+    elif direction in ordinalIndexables:
         target = date(year, 1, 1)
     weekday_ix = [wd.lower() for wd in days].index(weekday)
     while target.weekday() != weekday_ix:
-        if direction == 'first':
+        if direction in ordinalIndexables:
             target += timedelta(days=1)
-        elif direction == 'last':
+        elif direction == Indexable.LAST:
             target -= timedelta(days=1)
+    if direction == Indexable.SECOND:
+        target += timedelta(days=7)
+    if direction == Indexable.THIRD:
+        target += timedelta(days=14)
+    if direction == Indexable.FOURTH:
+        target += timedelta(days=21)
+    if direction == Indexable.FIFTH:
+        target += timedelta(days=28)
     return target
 
 
 def get_extremity_weekday_of_basedate(direction, weekday, basedate):
     if type(weekday) is Weekday:
         weekday = weekday.name
-    if direction == 'last':
+    if direction == Indexable.LAST:
         target = basedate + relativedelta(months=1, days=-1)
-    elif direction == 'first':
+    elif direction in ordinalIndexables:
         target = basedate
     try:
         weekday_ix = [wd.lower() for wd in days].index(weekday)
     except ValueError:
         weekday_ix = [wd.lower() for wd in days_abbrev].index(weekday)
     while target.weekday() != weekday_ix:
-        if direction == 'first':
+        if direction in ordinalIndexables:
             target += timedelta(days=1)
-        elif direction == 'last':
+        elif direction == Indexable.LAST:
             target -= timedelta(days=1)
-    return target
+    if direction == Indexable.SECOND:
+        target += timedelta(days=7)
+    if direction == Indexable.THIRD:
+        target += timedelta(days=14)
+    if direction == Indexable.FOURTH:
+        target += timedelta(days=21)
+    if direction == Indexable.FIFTH:
+        target += timedelta(days=28)
+    if target.month == basedate.month:
+        return target
 
 
 def common_weekday_to_string(common_weekday):
@@ -978,11 +1043,11 @@ def p_point_relativeindex(p):
                     direction, operand, closest_month)
         if type(p[3]) == tuple:
             direction2, operand2 = p[3]
-            leap2 = 1 if direction2 == 'next' else -1
+            leap2 = 1 if direction2 == Indexable.NEXT else -1
             p[3] = get_relative_basedate(leap2)
             p_point_relativeindex(p)
-    elif direction in ['next', 'last']:
-        leap = 1 if direction == 'next' else -1
+    elif direction in [Indexable.NEXT, Indexable.LAST]:
+        leap = 1 if direction == Indexable.NEXT else -1
         if operand == 'month':
             p[0] = get_relative_basedate(leap)
         else:

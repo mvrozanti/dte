@@ -4,7 +4,7 @@
 ![Travis (.com)](https://img.shields.io/travis/com/mvrozanti/dte)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dte)
 
-`dte` is a WIP date-time processing language with focus on broad interpretation and simplicity.
+`dte` is a WIP date-time processing language with focus on broad interpretation.
 
 If you don't think it's intuitive, it's most likely unfinished.
 
@@ -78,13 +78,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 17:55:49.942947`
+`n - 1234` returns `18913 days, 19:06:37.439014`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20834184.166174`
+`seconds until 2021 feb 14 12:00:00` returns `-20838431.66619`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -186,15 +186,15 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999954`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999955`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099954`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099955`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999968`
+`3h+3M` returns `92 days, 2:59:59.999971`
 
-`3M` returns `91 days, 23:59:59.999965`
+`3M` returns `91 days, 23:59:59.999971`
 
 `T-1.5d` returns `2021-10-11 12:00:00`
 
@@ -206,7 +206,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `12`
 
-`n` returns `2021-10-13 15:16:28.880211`
+`n` returns `2021-10-13 16:27:16.315764`
 
 `next Sunday` returns `2021-10-17`
 
@@ -214,9 +214,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878095410.803707`
+`seconds until 3000 Apr 10` returns `30878091163.386322`
 
-`seconds since 3000 Apr 10` returns `-30878095410.724777`
+`seconds since 3000 Apr 10` returns `-30878091163.3145`
 
 `next Sunday == last sunday` returns `False`
 
@@ -230,6 +230,8 @@ The following examples are generated based on tests run, so many results will be
 
 `first sunday in 2021` returns `2021-01-03`
 
+`1st sunday in 2021` returns `2021-01-03`
+
 `2012-12-13-3y.weekday` returns `Sunday`
 
 `t - next Sunday` returns `-4 days, 0:00:00`
@@ -242,7 +244,11 @@ The following examples are generated based on tests run, so many results will be
 
 `first friday in April 2014` returns `2014-04-04`
 
+`1st friday in April 2014` returns `2014-04-04`
+
 `first sun in April 2021` returns `2021-04-04`
+
+`1st sun in April 2021` returns `2021-04-04`
 
 `yd-5h` returns `2021-10-11 19:00:00`
 
@@ -258,21 +264,25 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `31409.000213`
+`seconds until tomorrow` returns `27161.468892`
 
-`seconds until 11 pm` returns `27808.889348`
+`seconds until 11 pm` returns `23561.384088`
 
 `next month` returns `2021-11-01`
 
 `first friday in next month` returns `2021-11-05`
 
+`1st friday in next month` returns `2021-11-05`
+
 `first friday in april` returns `2021-04-02`
+
+`1st friday in april` returns `2021-04-02`
 
 `2014 01` returns `2014-Jan`
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3359.3635219607872`
+`days until 2030-12-25` returns `3359.3143608054397`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -298,17 +308,29 @@ The following examples are generated based on tests run, so many results will be
 
 `next mon + 1d == next tue` returns `True`
 
-`days until next mon` returns `4.363510505706018`
+`days until next mon` returns `4.3143495951967585`
 
-`days until mon` returns `-2.6364904570370373`
+`days until mon` returns `-2.685651323240741`
 
 `today==mon` returns `False`
 
 `seconds in 24h` returns `86400.0`
 
-`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999968`
+`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999972`
 
-`2014 Jan + 1M` returns `2014-01-31 23:59:59.999971`
+`2014 Jan + 1M` returns `2014-01-31 23:59:59.999970`
 
 `-1d + 2020-10-10` returns `2020-10-09`
+
+`2nd sunday in 2021` returns `2021-01-10`
+
+`3rd sunday in 2021` returns `2021-01-17`
+
+`4th sunday in 2021` returns `2021-01-24`
+
+`5th sunday in 2021` returns `2021-01-31`
+
+`4th wed in august` returns `2021-08-25`
+
+`august` returns `2021-Aug`
 
