@@ -1,15 +1,13 @@
-#!/usr/bin/env -S python -m pytest 
+#!/usr/bin/env -S python -m pytest
 from collections import OrderedDict
-from io import StringIO
 from subprocess import Popen, PIPE, call
-import code
+import code  # noqa
 import os
 from os import path as op
 import re
-import sys
 import unittest
 
-days = ['Monday', 'Tuesday', 'Wednesday', \
+days = ['Monday', 'Tuesday', 'Wednesday',
         'Thursday', 'Friday', 'Saturday', 'Sunday']
 days_abbrev = [d[:3] for d in days]
 
@@ -137,14 +135,18 @@ test_expectancy = OrderedDict({
         'yesterday==thursday'                   : lambda r: r in ['True', 'False'],
         'yesterday==thu'                        : lambda r: r in ['True', 'False'],
         'weekday tm'                            : lambda r: r in days,
-        # 'weekday t+100d'                     : lambda r: r
-        # 'monday+1d'                           : lambda r: False,
-        # 'april+1d'                           : lambda r: False,
+        '(weekday t+100d)'                      : lambda r: r in days,
+        '(weekday t+100d)==100d.weekday'        : lambda r: eval(r),
+        'weekday t+100d'                        : lambda r: r in days,
+        'monday+1d'                             : lambda r: re.match(YMD_FORMAT, r),
+        'next mon + 1d'                         : lambda r: re.match(YMD_FORMAT, r),
+        'next mon + 1d == next tue'             : lambda r: eval(r),
+        # 'april+1d'                           : lambda r: False, # is anyone ever gonna use it like so?
         # '1st weekday in august'                 : lambda r: False,
-        # 'day of week 0'                         : lambda r: False,
         # 'seconds in 24h'                        : lambda r: False,
-        # 'today==mon'                        : lambda r: False,
+        'today==mon'                        : lambda r: r in ['True', 'False'],
         })
+
 
 def run(test):
     dte_location = os.path.dirname(os.path.realpath(__file__)) \
@@ -152,25 +154,27 @@ def run(test):
                              + op.sep + 'dte' \
                              + op.sep + 'dte'
     p = Popen(dte_location, stdin=PIPE, stdout=PIPE)
-    out,err = p.communicate(test.encode('utf-8'))
-    out = out.decode('utf-8').replace('\n','')
-    return out,err
+    out, err = p.communicate(test.encode('utf-8'))
+    out = out.decode('utf-8').replace('\n', '')
+    return out, err
+
 
 def make_documentation(test_out):
     import pathlib
     le_path = pathlib.Path(__file__).parent.resolve()
     call(['sed', '-i', '/BEGIN EXAMPLES/q', f'{le_path}/../README.md'])
     with open('../README.md', 'a') as f:
-        for test,out in test_out.items():
+        for test, out in test_out.items():
             f.write('`' + test + '` returns `' + out + '`\n\n')
+
 
 class Tester(unittest.TestCase):
 
     def test_stuff(self):
         test_out = OrderedDict()
-        for test,expectancy in test_expectancy.items():
+        for test, expectancy in test_expectancy.items():
             try:
-                out,err = run(test)
+                out, err = run(test)
                 test_out[test] = out
                 assert expectancy(out) and not err
             except Exception as e:

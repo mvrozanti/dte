@@ -696,10 +696,10 @@ def p_statements(p):
     'statement : statement SEMICOLON statement'
 
 
-def p_statement_weekday_literal(p):
-    '''statement : WEEKDAY_LITERAL expression
+def p_expression_weekday_literal_expression(p):
+    '''expression : WEEKDAY_LITERAL expression
                  '''
-    print(weekday(p[2]))
+    p[0] = weekday(p[2])
 
 
 def p_statement_invalid_assignment(p):

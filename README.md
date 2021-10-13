@@ -82,7 +82,7 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 The following examples are generated based on tests run, so many results will be relative to the day it was tested. Every expression on the left side is valid syntax.
 
 [//]: <> (BEGIN EXAMPLES)
-`(T-1d).weekday` returns `Monday`
+`(T-1d).weekday` returns `Tuesday`
 
 `(n + 180d)-180d == n` returns `True`
 
@@ -90,19 +90,19 @@ The following examples are generated based on tests run, so many results will be
 
 `(t + 180d)-180d == t` returns `True`
 
-`-1d.weekday` returns `Monday`
+`-1d.weekday` returns `Tuesday`
 
 `08h30` returns `8:30:00`
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 1:29:13.593471`
+`n - 1234` returns `18913 days, 12:12:02.175352`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20774987.820917`
+`seconds until 2021 feb 14 12:00:00` returns `-20813556.404535`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -172,9 +172,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2014 Jan 13==2014 January 13` returns `True`
 
-`1957-12-26 - t` returns `-23301 days, 0:00:00`
+`1957-12-26 - t` returns `-23302 days, 0:00:00`
 
-`1957-12-26 22:22:22 - t` returns `-23301 days, 22:22:22`
+`1957-12-26 22:22:22 - t` returns `-23302 days, 22:22:22`
 
 `1958-05-14 - 1958-05-16` returns `-2 days, 0:00:00`
 
@@ -204,27 +204,27 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999945`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999956`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099948`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099952`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999971`
+`3h+3M` returns `92 days, 2:59:59.999969`
 
-`3M` returns `91 days, 23:59:59.999968`
+`3M` returns `91 days, 23:59:59.999967`
 
-`T-1.5d` returns `2021-10-10 12:00:00`
+`T-1.5d` returns `2021-10-11 12:00:00`
 
-`T-10d` returns `2021-10-02`
+`T-10d` returns `2021-10-03`
 
-`T.day` returns `12`
+`T.day` returns `13`
 
-`T.weekday` returns `Tuesday`
+`T.weekday` returns `Wednesday`
 
-`YD.day` returns `11`
+`YD.day` returns `12`
 
-`n` returns `2021-10-12 22:49:52.529992`
+`n` returns `2021-10-13 09:32:41.010541`
 
 `next Sunday` returns `2021-10-17`
 
@@ -232,9 +232,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878154607.167076`
+`seconds until 3000 Apr 10` returns `30878116038.686363`
 
-`seconds since 3000 Apr 10` returns `-30878154607.08666`
+`seconds since 3000 Apr 10` returns `-30878116038.60971`
 
 `next Sunday == last sunday` returns `False`
 
@@ -250,7 +250,7 @@ The following examples are generated based on tests run, so many results will be
 
 `2012-12-13-3y.weekday` returns `Sunday`
 
-`t - next Sunday` returns `-5 days, 0:00:00`
+`t - next Sunday` returns `-4 days, 0:00:00`
 
 `wait .001s` returns ``
 
@@ -262,7 +262,7 @@ The following examples are generated based on tests run, so many results will be
 
 `first sun in April 2021` returns `2021-04-04`
 
-`yd-5h` returns `2021-10-10 19:00:00`
+`yd-5h` returns `2021-10-11 19:00:00`
 
 `1957-12-26 22:22:22 in unix` returns `-379118258`
 
@@ -276,9 +276,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `4205.459114`
+`seconds until tomorrow` returns `52037.055563`
 
-`seconds until 11 pm` returns `605.378743`
+`seconds until 11 pm` returns `48436.977545`
 
 `next month` returns `2021-11-01`
 
@@ -290,7 +290,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3360.048667916169`
+`days until 2030-12-25` returns `3359.6022746487615`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -302,5 +302,15 @@ The following examples are generated based on tests run, so many results will be
 
 `yesterday==thu` returns `False`
 
-`weekday tm` returns `Wednesday`
+`weekday tm` returns `Thursday`
+
+`(weekday t+100d)` returns `Friday`
+
+`(weekday t+100d)==100d.weekday` returns `True`
+
+`weekday t+100d` returns `Friday`
+
+`monday+1d` returns `2021-10-12`
+
+`next mon + 1d` returns `2021-10-19`
 
