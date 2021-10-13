@@ -3,6 +3,7 @@
 ![PyPI](https://img.shields.io/pypi/v/dte)
 ![Travis (.com)](https://img.shields.io/travis/com/mvrozanti/dte)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dte)
+[![License: WTFPL](https://img.shields.io/badge/License-WTFPL-orange.svg)](http://www.wtfpl.net/about/)
 
 `dte` is a WIP date-time processing language with focus on broad interpretation.
 
@@ -78,13 +79,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 20:46:28.747730`
+`n - 1234` returns `18913 days, 20:58:49.829372`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20844422.982575`
+`seconds until 2021 feb 14 12:00:00` returns `-20845164.054722`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -186,15 +187,15 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999951`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999957`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099947`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099951`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999956`
+`3h+3M` returns `92 days, 2:59:59.999969`
 
-`3M` returns `91 days, 23:59:59.999965`
+`3M` returns `91 days, 23:59:59.999972`
 
 `T-1.5d` returns `2021-10-11 12:00:00`
 
@@ -206,7 +207,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `12`
 
-`n` returns `2021-10-13 18:07:07.800937`
+`n` returns `2021-10-13 18:19:28.738032`
 
 `next Sunday` returns `2021-10-17`
 
@@ -214,9 +215,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878085171.89848`
+`seconds until 3000 Apr 10` returns `30878084430.961674`
 
-`seconds since 3000 Apr 10` returns `-30878085171.81591`
+`seconds since 3000 Apr 10` returns `-30878084430.88175`
 
 `next Sunday == last sunday` returns `False`
 
@@ -264,9 +265,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `21169.990522`
+`seconds until tomorrow` returns `20429.035428`
 
-`seconds until 11 pm` returns `17569.909667`
+`seconds until 11 pm` returns `16828.956249`
 
 `next month` returns `2021-11-01`
 
@@ -282,7 +283,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3359.2450148785997`
+`days until 2030-12-25` returns `3359.236439226817`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -308,17 +309,17 @@ The following examples are generated based on tests run, so many results will be
 
 `next mon + 1d == next tue` returns `True`
 
-`days until next mon` returns `4.245002991967593`
+`days until next mon` returns `4.236427690532407`
 
-`days until mon` returns `-2.754997944803241`
+`days until mon` returns `-2.7635731970833337`
 
 `today==mon` returns `False`
 
 `seconds in 24h` returns `86400.0`
 
-`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999966`
+`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999965`
 
-`2014 Jan + 1M` returns `2014-01-31 23:59:59.999965`
+`2014 Jan + 1M` returns `2014-01-31 23:59:59.999969`
 
 `-1d + 2020-10-10` returns `2020-10-09`
 
@@ -341,4 +342,12 @@ The following examples are generated based on tests run, so many results will be
 `t 1:00 == t 1am` returns `True`
 
 `(2020-10-10+1d) 3pm` returns `2020-10-11 15:00:00`
+
+`1am t` returns `2021-10-13 01:00:00`
+
+`1am t == t 1am` returns `True`
+
+`t+1d 08h30` returns `2021-10-14 08:30:00`
+
+`april+1M` returns `2021-05-01 23:59:59.999970`
 

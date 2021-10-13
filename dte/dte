@@ -550,7 +550,7 @@ def t_INDEXABLE_OP(t):
 def get_closest_month(month):
     counter_next = 0
     counter_prev = 0
-    next_date = datetime.now()
+    next_date = names['n']
     for _ in range(7):
         next_date += relativedelta(months=1)
         counter_next += 1
@@ -558,7 +558,7 @@ def get_closest_month(month):
         short_cur_month_name = cur_month_name[:3]
         if month.name in [cur_month_name, short_cur_month_name]:
             break
-    prev_date = datetime.now()
+    prev_date = names['n']
     for _ in range(7):
         prev_date += relativedelta(months=-1)
         counter_prev += 1
@@ -574,7 +574,7 @@ def get_closest_month(month):
 def get_closest_week_day(week_day):
     counter_next = 0
     counter_prev = 0
-    next_date = datetime.now()
+    next_date = names['n']
     if days[next_date.weekday()] == week_day.lower() or \
        days_abbrev[next_date.weekday()].lower() == week_day.lower():
         return next_date.date()
@@ -586,7 +586,7 @@ def get_closest_week_day(week_day):
                 break
             if days_abbrev[next_date.weekday()].lower() == week_day.lower():
                 break
-        prev_date = datetime.now()
+        prev_date = names['n']
         for _ in range(7):
             prev_date += timedelta(days=-1)
             counter_prev += 1
@@ -610,13 +610,13 @@ def parse_units(units_vals):
             unit += 's'
         if short:
             if unit.lower() == 'y':
-                parsed += (datetime.now() +
+                parsed += (names['n'] +
                            relativedelta(years=units_vals[unit])) - \
-                           datetime.now()
+                           names['n']
             elif unit == 'M':
-                parsed += (datetime.now() +
+                parsed += (names['n'] +
                            relativedelta(months=units_vals[unit])) - \
-                                   datetime.now()
+                                   names['n']
             else:
                 parsed += timedelta(**{unit_map[unit]: val})
         else:
@@ -649,7 +649,7 @@ lex.lex(debug=False)
 
 
 def wait(t):
-    now = datetime.now()
+    now = names['n']
     if isinstance(t, datetime):
         delta = t - now
     elif isinstance(t, time):
@@ -666,7 +666,7 @@ def weekday(t):
     if type(t) == date or type(t) == datetime:
         return days[t.weekday()]
     elif type(t) == timedelta:
-        return days[(datetime.now()+t).weekday()]
+        return days[(names['n']+t).weekday()]
     else:
         raise Exception('Can\'t get day of week of object of type' +
                         str(type(t)))
@@ -796,9 +796,9 @@ def p_statement_expr(p):
         closest_month = get_closest_month(p[1])
         p[1] = Basedate(closest_month.year, closest_month.month)
     if type(p[1]) == dateutil._common.weekday:
-        p[1] = (datetime.now() - relativedelta(weekday=p[1])).date()
+        p[1] = (names['n'] - relativedelta(weekday=p[1])).date()
     if type(p[1]) == relativedelta:
-        p[1] = (datetime.now() + p[1]).date()
+        p[1] = (names['n'] + p[1]).date()
     if p[1] is not None:
         if config.datetime_output_format != 'ISO8601':
             print(normalize(p[1]).strftime(config.datetime_output_format))
@@ -848,10 +848,10 @@ def p_expression_binop(p):
         p[3] = datetime.combine(p[3], datetime.min.time())
 
     if type(p[1]) == datetime and type(p[3]) == relativedelta:
-        p[3] = datetime.now() - p[3]
+        p[3] = names['n'] - p[3]
 
     if type(p[3]) == datetime and type(p[1]) == relativedelta:
-        p[1] = datetime.now() - p[1]
+        p[1] = names['n'] - p[1]
 
     if type(p[3]) == date and type(p[1]) == timedelta:
         p[3] = datetime.combine(p[3], datetime.min.time())
@@ -1006,7 +1006,7 @@ def string_to_common_weekday(weekday):
 
 
 def cyclic(t, direction):
-    cyclic_direction = datetime.now()
+    cyclic_direction = names['n']
     found = False
     for _ in range(7):
         cyclic_direction += timedelta(days=direction)
@@ -1019,7 +1019,7 @@ def cyclic(t, direction):
 
 
 def get_relative_basedate(direction):
-    cyclic_direction = datetime.now()
+    cyclic_direction = names['n']
     reference_month = cyclic_direction.month
     while reference_month == cyclic_direction.month:
         cyclic_direction += timedelta(days=direction)
@@ -1082,8 +1082,8 @@ def delta_to_unit(delta, unit):
 
 
 def p_expression_unit_until_point(p):
-    '''expression : UNIT UNTIL point
-                  | UNIT SINCE point
+    '''expression : UNIT UNTIL expression
+                  | UNIT SINCE expression
                   | UNIT SINCE NAME
                   | UNIT UNTIL NAME
                   '''
@@ -1096,26 +1096,22 @@ def p_expression_unit_until_point(p):
         if type(p[3]) == Weekday:
             p[3] = get_closest_week_day(p[3].name)
         if type(p[3]) == datetime:
-            delta = p[3] - datetime.now()
+            delta = p[3] - names['n']
         timeflag = False
         if type(p[3]) == time:
-            delta = datetime.combine(datetime.today(), p[3]) - datetime.now()
+            delta = datetime.combine(datetime.today(), p[3]) - names['n']
             timeflag = True
         if type(p[3]) == date:
             delta = datetime.combine(p[3], datetime.min.time()) - \
-                datetime.now()
+                names['n']
 
         p[0] = delta_to_unit(delta, p[1].lower())
         if p[2] == 'since':
             p[0] = -p[0]
         if timeflag:
             if p[0] < 0:
-                if p[2] == 'until':
-                    p[3] = datetime.combine(datetime.today(), p[3]) + \
-                            timedelta(days=1)
-                if p[2] == 'since':
-                    p[3] = datetime.combine(datetime.today(), p[3]) - \
-                            timedelta(days=1)
+                p[3] = datetime.combine(datetime.today(), p[3]) + \
+                         timedelta(days=1 if p[2] == 'until' else -1)
                 p_expression_unit_until_point(p)
 
     else:

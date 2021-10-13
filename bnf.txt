@@ -1,0 +1,57 @@
+<statement> ::= wait until <point>
+
+<statement> ::= <statement> ; <statement>
+
+<expression> ::= weekday <expression>
+
+<statement> ::= <name> = <expression>
+
+<expression> ::= <expression> <point>
+
+<point> ::= <name>
+
+<statement> ::= <expression>
+
+<expression> ::= <expression> + <expression>
+               | <expression> - <expression>
+               | <expression> > <expression>
+               | <expression> < <expression>
+               | <expression> >= <expression>
+               | <expression> <= <expression>
+               | <expression> == <expression>
+               | <expression> != <expression>
+
+<point> ::= <relativeindex> in <month>
+          | <relativeindex> in <integer>
+          | <relativeindex> in <basedate>
+          | <relativeindex> in <relativeindex>
+          | <relativeindex>
+
+<relativeindex> ::= <indexableop> <weekday>
+                  | <indexableop> month
+
+<expression> ::= <unit> until <expression>
+               | <unit> since <expression>
+               | <unit> since <name>
+               | <unit> until <name>
+
+<expression> ::= <delta>
+               | <timestamp>
+               | <point>
+
+<timestamp> ::= <integer>
+
+<expression> ::= <expression> in <unit>
+
+<point> ::= <timestamp>
+          | <basedate>
+          | <datetime>
+          | <month>
+          | <weekday>
+          | <year>
+
+<expression> ::= <expression> . weekday
+
+<expression> ::= <expression> . <name>
+
+<expression> ::= - <delta>
