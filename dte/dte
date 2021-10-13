@@ -588,7 +588,7 @@ def t_INTEGER(t):
 
 
 t_ignore = ' \t'
-t_ignore_COMMENT = r'\#.*'
+t_ignore_COMMENT = r'\s*\#.*'
 
 
 def t_newline(t):
@@ -1110,6 +1110,8 @@ def interactive():
         def default(self, line):
             if line == 'EOF':
                 exit(0)
+            if line.startswith('#'):
+               return
             current_time_routine()
             yacc.parse(line)
             self.commands.append(line)

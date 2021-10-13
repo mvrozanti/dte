@@ -10,7 +10,7 @@ If you don't think it's intuitive, it's most likely unfinished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
-[![asciicast](https://asciinema.org/a/J9ipOVGnrUdMlVZZr4VYeZCgF.svg)](https://asciinema.org/a/J9ipOVGnrUdMlVZZr4VYeZCgF)
+[![asciicast](https://asciinema.org/a/jZ8fIOf2yxAs2h3jU6axt6VQX.svg)](https://asciinema.org/a/jZ8fIOf2yxAs2h3jU6axt6VQX)
 
 ## How to use & What to know
 
@@ -96,13 +96,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 0:13:51.382259`
+`n - 1234` returns `18913 days, 1:29:13.593471`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20770465.627755`
+`seconds until 2021 feb 14 12:00:00` returns `-20774987.820917`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -204,15 +204,15 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999953`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999945`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099945`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099948`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999960`
+`3h+3M` returns `92 days, 2:59:59.999971`
 
-`3M` returns `91 days, 23:59:59.999953`
+`3M` returns `91 days, 23:59:59.999968`
 
 `T-1.5d` returns `2021-10-10 12:00:00`
 
@@ -224,7 +224,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `11`
 
-`n` returns `2021-10-12 21:34:30.348342`
+`n` returns `2021-10-12 22:49:52.529992`
 
 `next Sunday` returns `2021-10-17`
 
@@ -232,9 +232,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878159129.319134`
+`seconds until 3000 Apr 10` returns `30878154607.167076`
 
-`seconds since 3000 Apr 10` returns `-30878159129.244026`
+`seconds since 3000 Apr 10` returns `-30878154607.08666`
 
 `next Sunday == last sunday` returns `False`
 
@@ -276,9 +276,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `8727.645812`
+`seconds until tomorrow` returns `4205.459114`
 
-`seconds until 11 pm` returns `5127.571279`
+`seconds until 11 pm` returns `605.378743`
 
 `next month` returns `2021-11-01`
 
@@ -290,7 +290,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3360.1010081264817`
+`days until 2030-12-25` returns `3360.048667916169`
 
 `last fri in 2014 December` returns `2014-12-26`
 
