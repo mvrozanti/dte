@@ -150,8 +150,8 @@ test_expectancy = OrderedDict({
         'days until mon'                        : lambda r: -3.5 < float(r) < 3.5,
         'today==mon'                            : lambda r: r in ['True', 'False'],
         'seconds in 24h'                        : lambda r: float(r) == 86400,
-        'Jan 2014 + 1M'                         : lambda r: re.match(ISO_FORMAT, r),
-        '2014 Jan + 1M'                         : lambda r: re.match(ISO_FORMAT, r),
+        'Jan 2014 + 1M'                         : lambda r: re.match(YMD_FORMAT, r),
+        '2014 Jan + 1M'                         : lambda r: re.match(YMD_FORMAT, r),
         '-1d + 2020-10-10'                      : lambda r: r == '2020-10-09',
         '2nd sunday in 2021'                    : lambda r: r == '2021-01-10',
         '3rd sunday in 2021'                    : lambda r: r == '2021-01-17',
@@ -166,7 +166,7 @@ test_expectancy = OrderedDict({
         '1am t'                                 : lambda r: re.match(ISO_FORMAT, r),
         '1am t == t 1am'                        : lambda r: eval(r),
         't+1d 08h30'                            : lambda r: re.match(ISO_FORMAT, r),
-        'april+1M'                              : lambda r: re.match(ISO_FORMAT, r),
+        'april+1M'                              : lambda r: re.match(YMD_FORMAT, r),
         })
 
 

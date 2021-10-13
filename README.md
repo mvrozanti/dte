@@ -33,7 +33,6 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
   "clock": "<24|12>",
   "datetime_output_format": "<ISO8601|<format>>"
   "comparison_tolerance_seconds": <seconds>
-  "comparison_tolerance_seconds": <seconds>
   "basedate_output_format": "%Y-%b",
 }
 ```
@@ -79,13 +78,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 20:58:49.829372`
+`n - 1234` returns `18913 days, 22:19:48.912292`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20845164.054722`
+`seconds until 2021 feb 14 12:00:00` returns `-20850023.163074`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -187,15 +186,15 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999957`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:01`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099951`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.100000`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999969`
+`3h+3M` returns `92 days, 3:00:00`
 
-`3M` returns `91 days, 23:59:59.999972`
+`3M` returns `92 days, 0:00:00`
 
 `T-1.5d` returns `2021-10-11 12:00:00`
 
@@ -207,7 +206,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `12`
 
-`n` returns `2021-10-13 18:19:28.738032`
+`n` returns `2021-10-13 19:40:28.140041`
 
 `next Sunday` returns `2021-10-17`
 
@@ -215,9 +214,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878084430.961674`
+`seconds until 3000 Apr 10` returns `30878079571.543015`
 
-`seconds since 3000 Apr 10` returns `-30878084430.88175`
+`seconds since 3000 Apr 10` returns `-30878079571.460346`
 
 `next Sunday == last sunday` returns `False`
 
@@ -265,9 +264,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `20429.035428`
+`seconds until tomorrow` returns `15569.556429`
 
-`seconds until 11 pm` returns `16828.956249`
+`seconds until 11 pm` returns `11969.483238`
 
 `next month` returns `2021-11-01`
 
@@ -283,7 +282,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3359.236439226817`
+`days until 2030-12-25` returns `3359.1801948897682`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -309,17 +308,17 @@ The following examples are generated based on tests run, so many results will be
 
 `next mon + 1d == next tue` returns `True`
 
-`days until next mon` returns `4.236427690532407`
+`days until next mon` returns `4.180183002824074`
 
-`days until mon` returns `-2.7635731970833337`
+`days until mon` returns `-2.81981790900463`
 
 `today==mon` returns `False`
 
 `seconds in 24h` returns `86400.0`
 
-`Jan 2014 + 1M` returns `2014-01-31 23:59:59.999965`
+`Jan 2014 + 1M` returns `2014-02-01`
 
-`2014 Jan + 1M` returns `2014-01-31 23:59:59.999969`
+`2014 Jan + 1M` returns `2014-02-01`
 
 `-1d + 2020-10-10` returns `2020-10-09`
 
@@ -349,5 +348,5 @@ The following examples are generated based on tests run, so many results will be
 
 `t+1d 08h30` returns `2021-10-14 08:30:00`
 
-`april+1M` returns `2021-05-01 23:59:59.999970`
+`april+1M` returns `2021-05-02`
 
