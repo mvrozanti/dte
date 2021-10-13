@@ -175,8 +175,8 @@ FUNCTIONS / ATTRIBUTES
     last WEEKDAY         : returns the date for the last weekday
 
     dayofweek TIME_POINT : returns weekday for time point
-        dow  TIME_POINT  |
-        TIME_POINT.dow   |
+        weekday  TIME_POINT  |
+        TIME_POINT.weekday   |
 
 STDIN & ARGUMENTS
 
@@ -240,6 +240,7 @@ tokens = (
     'YEAR',
     'MONTH',
     'MONTH_LITERAL',
+    'WEEKDAY_LITERAL',
     'BASEDATE',
     'DELTA',
     'WEEKDAY',
@@ -270,6 +271,7 @@ t_UNTIL = r'(?i)until'
 t_SINCE = r'(?i)since'
 t_WAIT = r'(?i)wait'
 t_MONTH_LITERAL = r'(?i)month'
+t_WEEKDAY_LITERAL = r'(?i)weekday'
 
 reserved = [
             r'in',
@@ -278,6 +280,7 @@ reserved = [
             r'until',
             r'since',
             r'month',
+            r'weekday',
         ]
 
 
@@ -616,7 +619,7 @@ def wait(t):
         sleep(delta.total_seconds())
 
 
-def dow(t):
+def weekday(t):
     if type(t) == date or type(t) == datetime:
         return days[t.weekday()]
     elif type(t) == timedelta:
@@ -665,9 +668,8 @@ names = {
             'minute': lambda t: t.minute,
             'second': lambda t: t.second,
             'wait': lambda t: wait(t),
-            'dow': lambda t: dow(t),
-            'dayofweek': lambda t: dow(t),
-            'weekday': lambda t: dow(t),
+            'weekday': lambda t: weekday(t),
+            'dayofweek': lambda t: weekday(t),
             'help': lambda: print(HELP),
         }
 
@@ -692,6 +694,12 @@ def p_statement_wait_until_point(p):
 
 def p_statements(p):
     'statement : statement SEMICOLON statement'
+
+
+def p_statement_weekday_literal(p):
+    '''statement : WEEKDAY_LITERAL expression
+                 '''
+    print(weekday(p[2]))
 
 
 def p_statement_invalid_assignment(p):
@@ -815,7 +823,7 @@ def p_expression_comparison(p):
         p[3] = datetime.combine(p[3], datetime.min.time())
 
     if type(p[1]) == Weekday and type(p[3]) == date:
-        p[0] = dow(p[3]).lower().startswith(p[1].name.lower())
+        p[0] = weekday(p[3]).lower().startswith(p[1].name.lower())
         if p[2] == '!=':
             p[0] = not p[0]
         elif p[2] == '==':
@@ -825,7 +833,7 @@ def p_expression_comparison(p):
         return
 
     if type(p[3]) == Weekday and type(p[1]) == date:
-        p[0] = dow(p[1]).lower().startswith(p[3].name.lower())
+        p[0] = weekday(p[1]).lower().startswith(p[3].name.lower())
         if p[2] == '!=':
             p[0] = not p[0]
         elif p[2] == '==':
@@ -1055,6 +1063,11 @@ def p_point(p):
              | YEAR
              '''
     p[0] = p[1]
+
+
+def p_expression_get_weekday(p):
+    'expression : expression PERIOD WEEKDAY_LITERAL'
+    p[0] = weekday(p[1])
 
 
 def p_expression_get_attribute(p):
