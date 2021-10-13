@@ -823,6 +823,12 @@ def p_expression_binop(p):
     if type(p[3]) == str:
         p[3] = Weekday(p[3])
 
+    if type(p[1]) == Month:
+       p[1] = get_closest_month(p[1])
+
+    if type(p[3]) == Month:
+       p[3] = get_closest_month(p[3])
+
     if type(p[3]) == Basedate:
         p[3] = p[3].to_datetime()
 
