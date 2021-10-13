@@ -63,7 +63,7 @@ test_expectancy = OrderedDict({
         '6 pm + 1h'                             : lambda r: re.match(HMS_FORMAT, r),
         '6pm'                                   : lambda r: re.match(HMS_FORMAT, r),
         '22m:22 + 4h'                           : lambda r: r == '4:22:22',
-        '1-1-1-1-1-1'                           : lambda r: re.match(HMS_FORMAT, r),
+        '1-1-1-1-1-1'                           : lambda r: '0:00:00',
         '1610494238'                            : lambda r: '2021-01-12' in r,
         '1610494238+4h.weekday'                 : lambda r: r == 'Wednesday',
         '1610494238.weekday'                    : lambda r: r == 'Tuesday',
@@ -159,9 +159,14 @@ test_expectancy = OrderedDict({
         '5th sunday in 2021'                    : lambda r: r == '2021-01-31',
         '4th wed in august'                     : lambda r: re.match(YMD_FORMAT, r),
         'august'                                : lambda r: re.match(BASEDATE_FORMAT, r),
+        't 1am'                                 : lambda r: re.match(ISO_FORMAT, r),
+        't 1:00'                                : lambda r: re.match(ISO_FORMAT, r),
+        't 1:00 == t 1am'                       : lambda r: eval(r),
+        # '1am t'                                 : lambda r: re.match(ISO_FORMAT, r),
+        # '1am t == t 1am'                        : lambda r: eval(r),
+
         # 't+1d 08h30'                            : lambda r: False,
         # '(2020-10-10+1d) 08h30'                 : lambda r: False, 
-        # 't 1am'                                 : lambda r: False,
         # 'april+1M'                              : lambda r: False, # ???
         # 'third week in september'               : lambda r: False, # ???
         })

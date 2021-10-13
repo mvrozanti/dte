@@ -769,6 +769,13 @@ def normalize(t):
     return t
 
 
+def p_expression_expression_point(p):
+    'expression : expression point'
+    try:
+        p[0] = datetime.combine(p[1], p[2])
+    except TypeError:
+        p[0] = datetime.combine(p[2], p[1])
+
 def p_expression_name(p):
     'expression : NAME'
     if p[1] not in names:
@@ -925,16 +932,6 @@ def p_expression_comparison(p):
             p[3] = p[3].date()
     except TypeError as e:
         print(str(e))
-
-
-def p_expression_funcall(p):
-    '''expression : NAME point
-                  | NAME DELTA
-                  '''
-    try:
-        p[0] = names[p[1].lower()](p[2])
-    except KeyError:
-        raise Exception("Undefined name '%s'" % p[1])
 
 
 def get_extremity_weekday_of_year(direction, weekday, year):
