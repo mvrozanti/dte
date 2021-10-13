@@ -21,7 +21,6 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - When there is margin for ambiguity, expressions are always interpreted with [highest units appearing before, complying with ISO-8601](https://preview.redd.it/2vjzrsib7ci61.png?width=2800&format=png&auto=webp&s=944b5176432419338cb2b13aeac10e61da1221f9), e.g.: `2021-06-13`, `2023 August 27` or `2019 Jul 20`
 - Unix timestamps are both interpreted and output in seconds by default, but this is configurable
 - When specifying time, just remember that `M` is for month and `m` is for minute
-- Although english month and week-day names are always recognized, so are the names in the user's locale
 
 ## Configuration File
 
@@ -44,36 +43,19 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [appdirs](https://github.com/ActiveState/appdirs) for reading config file in a cross-platform manner
 
 ## To do
-- [x] floating-point time units
-- [x] subtract delta from date
-- [x] add delta week month year
-- [x] help
-- [x] closest weekday
-- [x] python-like comparison
-- [x] wait(x)
-- [x] timestamp object
-- [x] next/last(weekday)
-- [x] add basedate point
-- [x] add `6 pm`
 - [x] in keyword
   - [x] `first/last friday in 2014` - extremity
   - [x] `first/last friday in April` - extremity
   - [x] `first/last friday in next month` - extremity
   - [x] `first/last friday in 2014 April ` - extremity
   - [ ] `INTEGERth WEEKDAY IN BASEDATE` - extremity?
-- [x] until keyword
 - [ ] format(timepoint, fmt) (in keyword) units given current time field
-- [ ] add option
-  - [ ] to use custom locale
-  - [x] to set unix timestamp format (seconds, millis, etc)
+- [ ] add custom/OS locale support (?)
 - [ ] add tab-completion for:
   - [ ] months
-  - [ ] units given current datetime field or second hand of `in` keyword
+  - [ ] units given current datetime field or RHS of `in` keyword
+- [ ] decide whether UNIT (SINCE/UNTIL) TIME<DELTA> should return negative values; in other words: should "hours until 1am" when n=11pm be interpreted to t+1d 1am or t 1am
 - [ ] run tests across a variety of locales
-- [x] unify documentation by using tests
-- [x] continuous integration
-- [x] parse month & abbrev
-- [x] parse weekday & abbrev
 - [ ] add `show` function
   - [ ] show clock for time
   - [ ] show cal for date and basedate
@@ -96,13 +78,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18913 days, 12:12:02.175352`
+`n - 1234` returns `18913 days, 15:57:10.777473`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-20813556.404535`
+`seconds until 2021 feb 14 12:00:00` returns `-20827065.010962`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -204,15 +186,15 @@ The following examples are generated based on tests run, so many results will be
 
 `22h22m` returns `22:22:00`
 
-`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999956`
+`6y5M4d3h2m1s` returns `2346 days, 3:02:00.999953`
 
-`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099952`
+`7y6M5w4d3h2m1.1s` returns `2778 days, 3:02:01.099948`
 
 `2h2m` returns `2:02:00`
 
-`3h+3M` returns `92 days, 2:59:59.999969`
+`3h+3M` returns `92 days, 2:59:59.999966`
 
-`3M` returns `91 days, 23:59:59.999967`
+`3M` returns `91 days, 23:59:59.999942`
 
 `T-1.5d` returns `2021-10-11 12:00:00`
 
@@ -224,7 +206,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `12`
 
-`n` returns `2021-10-13 09:32:41.010541`
+`n` returns `2021-10-13 13:17:49.809106`
 
 `next Sunday` returns `2021-10-17`
 
@@ -232,9 +214,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30878116038.686363`
+`seconds until 3000 Apr 10` returns `30878102529.867138`
 
-`seconds since 3000 Apr 10` returns `-30878116038.60971`
+`seconds since 3000 Apr 10` returns `-30878102529.78795`
 
 `next Sunday == last sunday` returns `False`
 
@@ -276,9 +258,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `52037.055563`
+`seconds until tomorrow` returns `38528.156148`
 
-`seconds until 11 pm` returns `48436.977545`
+`seconds until 11 pm` returns `34928.080046`
 
 `next month` returns `2021-11-01`
 
@@ -290,7 +272,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3359.6022746487615`
+`days until 2030-12-25` returns `3359.4459214777435`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -313,4 +295,14 @@ The following examples are generated based on tests run, so many results will be
 `monday+1d` returns `2021-10-12`
 
 `next mon + 1d` returns `2021-10-19`
+
+`next mon + 1d == next tue` returns `True`
+
+`days until next mon` returns `4.445909865798611`
+
+`days until mon` returns `-2.5540910477083334`
+
+`today==mon` returns `False`
+
+`seconds in 24h` returns `86400.0`
 

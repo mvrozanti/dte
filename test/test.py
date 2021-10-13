@@ -141,10 +141,16 @@ test_expectancy = OrderedDict({
         'monday+1d'                             : lambda r: re.match(YMD_FORMAT, r),
         'next mon + 1d'                         : lambda r: re.match(YMD_FORMAT, r),
         'next mon + 1d == next tue'             : lambda r: eval(r),
-        # 'april+1d'                           : lambda r: False, # is anyone ever gonna use it like so?
+        'days until next mon'                   : lambda r: 0 < float(r) < 7,
+        'days until mon'                        : lambda r: -3.5 < float(r) < 3.5,
+        'today==mon'                            : lambda r: r in ['True', 'False'],
+        'seconds in 24h'                        : lambda r: float(r) == 86400,
+        # '2014 Jan + 1M'                    : lambda r: ,
+        # 'april+1M'                            : lambda r: False, # is anyone ever gonna use it this?
         # '1st weekday in august'                 : lambda r: False,
-        # 'seconds in 24h'                        : lambda r: False,
-        'today==mon'                        : lambda r: r in ['True', 'False'],
+        # 't+1d 08h30'                        : lambda r: False,
+        # '(2020-10-10+1d) 08h30'        
+        # 't 1am'                        : lambda r: False,
         })
 
 

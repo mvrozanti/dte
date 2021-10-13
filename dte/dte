@@ -946,13 +946,13 @@ def get_relative_basedate(direction):
     # return Basedate(cyclic_direction.year, cyclic_direction.month)
 
 
-def p_expression_relativeindex(p):
-    '''expression : relativeindex IN MONTH
-                  | relativeindex IN INTEGER
-                  | relativeindex IN BASEDATE
-                  | relativeindex IN relativeindex
-                  | relativeindex
-                  '''
+def p_point_relativeindex(p):
+    '''point : relativeindex IN MONTH
+             | relativeindex IN INTEGER
+             | relativeindex IN BASEDATE
+             | relativeindex IN relativeindex
+             | relativeindex
+             '''
     direction, operand = p[1]
     if len(p) > 2:
         if type(p[3]) == int:
@@ -967,7 +967,7 @@ def p_expression_relativeindex(p):
             direction2, operand2 = p[3]
             leap2 = 1 if direction2 == 'next' else -1
             p[3] = get_relative_basedate(leap2)
-            p_expression_relativeindex(p)
+            p_point_relativeindex(p)
     elif direction in ['next', 'last']:
         leap = 1 if direction == 'next' else -1
         if operand == 'month':
@@ -1011,16 +1011,29 @@ def p_expression_unit_until_point(p):
                 p[3] = datetime.combine(names[p[3]], datetime.min.time())
             else:
                 raise Exception('{p[3]} is unrecognized')
+        if type(p[3]) == Weekday:
+            p[3] = get_closest_week_day(p[3].name)
         if type(p[3]) == datetime:
             delta = p[3] - datetime.now()
+        timeflag = False
         if type(p[3]) == time:
             delta = datetime.combine(datetime.today(), p[3]) - datetime.now()
+            timeflag = True
         if type(p[3]) == date:
             delta = datetime.combine(p[3], datetime.min.time()) - \
                 datetime.now()
+
         p[0] = delta_to_unit(delta, p[1].lower())
         if p[2] == 'since':
             p[0] = -p[0]
+        if timeflag:
+            if p[0] < 0:
+               if p[2] == 'until':
+                  p[3] = datetime.combine(datetime.today(), p[3]) + timedelta(days=1)
+               if p[2] == 'since':
+                  p[3] = datetime.combine(datetime.today(), p[3]) - timedelta(days=1)
+               p_expression_unit_until_point(p)
+
     else:
         raise Exception('Invalid syntax: {p[1]} {p[2]} {p[3]}')
 
@@ -1043,6 +1056,14 @@ def p_timestamp_integer(p):
 
 
 def p_statement_point_in_unit(p):
+    'expression : UNIT IN DELTA'
+    aux = p[3]
+    p[3] = p[1]
+    p[1] = aux
+    p_statement_expression_in_unit(p)
+
+
+def p_statement_expression_in_unit(p):
     'expression : expression IN UNIT'
     to_unix = p[3] == 'unix'
     if type(p[1]) == timedelta and to_unix:
