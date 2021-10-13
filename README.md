@@ -10,7 +10,7 @@ If you don't think it's intuitive, it's most likely unfinished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
-[![asciicast](https://asciinema.org/a/AifTwy0V7MscrkKyRMNPMQdHC.svg)](https://asciinema.org/a/AifTwy0V7MscrkKyRMNPMQdHC)
+[![asciicast](https://asciinema.org/a/J9ipOVGnrUdMlVZZr4VYeZCgF.svg)](https://asciinema.org/a/J9ipOVGnrUdMlVZZr4VYeZCgF)
 
 ## How to use & What to know
 
