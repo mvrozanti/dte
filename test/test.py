@@ -147,7 +147,7 @@ test_expectancy = OrderedDict({
         'next mon + 1d'                         : lambda r: re.match(YMD_FORMAT, r),
         'next mon + 1d == next tue'             : lambda r: eval(r),
         'days until next mon'                   : lambda r: 0 < float(r) < 7,
-        'days until mon'                        : lambda r: -3.5 < float(r) < 3.5,
+        'days until mon'                        : lambda r: -4.5 < float(r) < 4.5,
         'today==mon'                            : lambda r: r in ['True', 'False'],
         'seconds in 24h'                        : lambda r: float(r) == 86400,
         'Jan 2014 + 1M'                         : lambda r: re.match(YMD_FORMAT, r),
