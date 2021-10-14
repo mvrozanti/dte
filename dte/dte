@@ -948,7 +948,10 @@ def get_extremity_weekday_of_year(direction, weekday, year):
         target = date(year+1, 1, 1) - timedelta(days=1)
     elif direction in ordinalIndexables:
         target = date(year, 1, 1)
-    weekday_ix = [wd.lower() for wd in days].index(weekday)
+    try:
+       weekday_ix = [wd.lower() for wd in days].index(weekday)
+    except ValueError:
+        weekday_ix = [wd.lower() for wd in days_abbrev].index(weekday)
     while target.weekday() != weekday_ix:
         if direction in ordinalIndexables:
             target += timedelta(days=1)
