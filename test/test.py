@@ -77,7 +77,7 @@ test_expectancy = OrderedDict({
         '1d in seconds'                         : lambda r: r == '86400.00',
         '1d'                                    : lambda r: r == '1 day, 0:00:00',
         '1d+0h22m'                              : lambda r: r == '1 day, 0:22:00',
-        '1d1m in hours'                         : lambda r: r == '24.016666666666666',
+        '1d1m in hours'                         : lambda r: r == '24.02',
         '1970 Jan 1 - 3h in unix'               : lambda r: int(r) <= 24*60*60,
         '1w'                                    : lambda r: r == '7 days, 0:00:00',
         '2020 Jan 27 + 1y == 2021 Jan 26'       : lambda r: eval(r),
