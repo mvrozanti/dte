@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
      name='dte',  
-     version='0.2.3',
+     version='0.2.4',
      author="Marcelo V. Rozanti",
      author_email="mvrozanti@hotmail.com",
      description="Date Time Expressions",
@@ -16,7 +16,7 @@ setuptools.setup(
      url="https://github.com/mvrozanti/dte",
      packages=setuptools.find_packages('dte'),
      install_requires=[
-         'python-dateutil', 'ply'
+         'python-dateutil', 'ply', 'appdirs'
          ],
      scripts=[
          'dte/dte',
