@@ -11,7 +11,7 @@ If you don't think it's intuitive, it's most likely unfinished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
-[![asciicast](https://asciinema.org/a/jZ8fIOf2yxAs2h3jU6axt6VQX.svg)](https://asciinema.org/a/jZ8fIOf2yxAs2h3jU6axt6VQX)
+[![asciicast](https://asciinema.org/a/wGmoTkVVdTBtzbtZSNVqGS2Zq.svg)](https://asciinema.org/a/wGmoTkVVdTBtzbtZSNVqGS2Zq)
 
 ## How to use & What to know
 
