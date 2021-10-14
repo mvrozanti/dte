@@ -1098,6 +1098,8 @@ def p_expression_unit_until_point(p):
                 raise Exception('{p[3]} is unrecognized')
         if type(p[3]) == Weekday:
             p[3] = get_closest_week_day(p[3].name)
+        if type(p[3]) == Basedate:
+           p[3] = p[3].to_datetime()
         if type(p[3]) == datetime:
             delta = p[3] - names['n']
         timeflag = False

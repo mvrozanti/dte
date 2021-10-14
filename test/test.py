@@ -168,6 +168,7 @@ test_expectancy = OrderedDict({
         't+1d 08h30'                            : lambda r: re.match(ISO_FORMAT, r),
         'april+1M'                              : lambda r: re.match(YMD_FORMAT, r),
         'last sun in 2021'                      : lambda r: r == '2021-12-26',
+        'days until Jan 2030'                   : lambda r: float(r) < 3002,
         })
 
 
