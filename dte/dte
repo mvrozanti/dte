@@ -31,6 +31,7 @@ def read_write_get_config():
             "datetime_output_format": "ISO8601",
             "comparison_tolerance_seconds": 0.001,
             "basedate_output_format": "%Y-%b",
+            "decimal_places": 2,
             }
     if not op.exists(dte_config_dir):
         os.mkdir(dte_config_dir)
@@ -804,6 +805,8 @@ def p_statement_expr(p):
             print(normalize(p[1]).strftime(config.datetime_output_format))
         elif config.clock != '24' and type(p[1]) == time:
             print(normalize(p[1]).strftime('%I %p'))
+        elif isinstance(p[1], float):
+            print('{:.{d}f}'.format(p[1], d=config.decimal_places))
         else:
             print(normalize(p[1]))
         names['_'] = p[1]

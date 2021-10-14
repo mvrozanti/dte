@@ -11,7 +11,7 @@ If you don't think it's intuitive, it's most likely unfinished.
 
 It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 
-[![asciicast](https://asciinema.org/a/wGmoTkVVdTBtzbtZSNVqGS2Zq.svg)](https://asciinema.org/a/wGmoTkVVdTBtzbtZSNVqGS2Zq)
+[![asciicast](https://asciinema.org/a/hAgiIUnxUezXMFUJD7JzpCJqR.svg)](https://asciinema.org/a/hAgiIUnxUezXMFUJD7JzpCJqR)
 
 ## How to use & What to know
 
@@ -31,9 +31,10 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 {
   "timestamp_unit": "<seconds|milliseconds>"
   "clock": "<24|12>",
-  "datetime_output_format": "<ISO8601|<format>>"
-  "comparison_tolerance_seconds": <seconds>
+  "datetime_output_format": "<ISO8601|<format>>",
+  "comparison_tolerance_seconds": <float>,
   "basedate_output_format": "%Y-%b",
+  "decimal_places": <integer>
 }
 ```
 
