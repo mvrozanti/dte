@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
      name='dte',  
-     version='0.2.4',
+     version='0.2.5',
      author="Marcelo V. Rozanti",
      author_email="mvrozanti@hotmail.com",
      description="Date Time Expressions",

@@ -44,18 +44,12 @@ It is strongly inspired by [pdd](https://github.com/jarun/pdd).
 - [appdirs](https://github.com/ActiveState/appdirs) for reading config file in a cross-platform manner
 
 ## To do
-- [x] in keyword
-  - [x] `first/last friday in 2014` - extremity
-  - [x] `first/last friday in April` - extremity
-  - [x] `first/last friday in next month` - extremity
-  - [x] `first/last friday in 2014 April ` - extremity
-  - [ ] `INTEGERth WEEKDAY IN BASEDATE` - extremity?
 - [ ] format(timepoint, fmt) (in keyword) units given current time field
 - [ ] add custom/OS locale support (?)
 - [ ] add tab-completion for:
   - [ ] months
   - [ ] units given current datetime field or RHS of `in` keyword
-- [ ] decide whether UNIT (SINCE/UNTIL) TIME<DELTA> should return negative values; in other words: should "hours until 1am" when n=11pm be interpreted to t+1d 1am or t 1am
+- [ ] "days until winter"
 - [ ] run tests across a variety of locales
 - [ ] add `show` function
   - [ ] show clock for time
