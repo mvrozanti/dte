@@ -619,9 +619,13 @@ def parse_units(units_vals):
                            relativedelta(months=units_vals[unit])) - \
                                    names['n']
             else:
-                parsed += timedelta(**{unit_map[unit]: val})
+                    parsed += timedelta(**{unit_map[unit]: val})
+
         else:
-            parsed += timedelta(**{unit: val})
+            try:
+                parsed += timedelta(**{unit: val})
+            except TypeError:
+                parsed += relativedelta(**{unit: val})
     return parsed
 
 
@@ -844,17 +848,17 @@ def p_expression_binop(p):
     if type(p[3]) == time and type(p[1]) == timedelta:
         p[3] = time2timedelta(p[3])
 
-    if type(p[1]) == date and type(p[3]) == relativedelta:
-        p[1] = datetime.combine(p[1], datetime.min.time())
-
-    if type(p[3]) == date and type(p[1]) == relativedelta:
-        p[3] = datetime.combine(p[3], datetime.min.time())
-
-    if type(p[1]) == datetime and type(p[3]) == relativedelta:
-        p[3] = names['n'] - p[3]
-
-    if type(p[3]) == datetime and type(p[1]) == relativedelta:
-        p[1] = names['n'] - p[1]
+    # if type(p[1]) == date and type(p[3]) == relativedelta:
+    #     p[1] = datetime.combine(p[1], datetime.min.time())
+    #
+    # if type(p[3]) == date and type(p[1]) == relativedelta:
+    #     p[3] = datetime.combine(p[3], datetime.min.time())
+    #
+    # if type(p[1]) == datetime and type(p[3]) == relativedelta:
+    #     p[3] = names['n'] - p[3]
+    #
+    # if type(p[3]) == datetime and type(p[1]) == relativedelta:
+    #     p[1] = names['n'] - p[1]
 
     if type(p[3]) == date and type(p[1]) == timedelta:
         p[3] = datetime.combine(p[3], datetime.min.time())
