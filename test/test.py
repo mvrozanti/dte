@@ -182,7 +182,8 @@ test_expectancy = OrderedDict({
         'friday day 13 in Jan 2015 to Jan 2019' : lambda r: re.match(YMD_LIST_FORMAT, r),
         'friday day < 8 in Jan 2015 to Jan 2019': lambda r: re.match(YMD_LIST_FORMAT, r),
         'friday day > 8 in Jan 2015 to Jan 2019': lambda r: re.match(YMD_LIST_FORMAT, r),
-        'friday day < 8 in Jan 2015' : lambda r: r == '2015-01-02',
+        'friday day < 8 in Jan 2015'            : lambda r: r == '2015-01-02',
+        'friday in Jan 2015'                    : lambda r: re.match(YMD_LIST_FORMAT, r),
         # 'friday day = 8 in Jan 2015' : lambda r: r == '2015-01-02',
         # 'fris in 2015' # rrule
         # 'fridays in 2015' # rrule
@@ -208,7 +209,8 @@ def make_documentation(test_out):
     call(['sed', '-i', '/BEGIN EXAMPLES/q', f'{le_path}/../README.md'])
     with open('../README.md', 'a') as f:
         for test, out in test_out.items():
-            f.write('`' + test + '` returns `' + out + '`\n\n')
+            if len(out) < 30:
+                f.write('`' + test + '` returns `' + out + '`\n\n')
 
 
 class Tester(unittest.TestCase):

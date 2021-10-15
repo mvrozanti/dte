@@ -826,8 +826,7 @@ def p_statement_expr(p):
         elif isinstance(p[1], float):
             print('{:.{d}f}'.format(p[1], d=config.decimal_places))
         elif type(p[1]) == list:
-            for e in p[1]:
-                print(normalize(e))
+            print('\r\n'.join([str(normalize(e)) for e in p[1]]))
         else:
             print(normalize(p[1]))
         names['_'] = p[1]
@@ -860,6 +859,8 @@ def p_range(p):
 def parse_filter(filtr):
     filter_args = {}
     for condition in filtr:
+        if type(condition) == Weekday:
+            condition = [condition]
         if type(condition[0]) == Weekday:
             if 'byweekday' not in filter_args:
                 filter_args['byweekday'] = []
