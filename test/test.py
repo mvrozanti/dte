@@ -184,6 +184,7 @@ test_expectancy = OrderedDict({
         'friday day > 8 in Jan 2015 to Jan 2019': lambda r: re.match(YMD_LIST_FORMAT, r),
         'friday day < 8 in Jan 2015'            : lambda r: r == '2015-01-02',
         'friday in Jan 2015'                    : lambda r: re.match(YMD_LIST_FORMAT, r),
+        'friday day < 13 in 2014 sep'           : lambda r: re.match(YMD_LIST_FORMAT, r)
         # 'friday day = 8 in Jan 2015' : lambda r: r == '2015-01-02',
         # 'fris in 2015' # rrule
         # 'fridays in 2015' # rrule

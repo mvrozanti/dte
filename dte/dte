@@ -425,7 +425,7 @@ unit_map = {
 SHORT_UNITS_STR = ''.join(unit_map.keys())
 LONG_UNITS_STR = '(?:'+'?|'.join(set(unit_map.values()))+'?)'
 FLOATING_POINT = r'((?:\d*[.])?\d+)'
-EXCLUDE_TAIL = '(?!ec|t)'
+EXCLUDE_TAIL = '(?!ec|t|ep|ay)'
 UNFINISHED_LAST_UNIT_DELTA = \
    fr'(?:[ \t]*{FLOATING_POINT}\s*({LONG_UNITS_STR}|[{SHORT_UNITS_STR}]{EXCLUDE_TAIL})'
 OMITTABLE_LAST_UNIT_DELTA = f'{UNFINISHED_LAST_UNIT_DELTA}?)'
