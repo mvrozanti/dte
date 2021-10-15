@@ -55,3 +55,27 @@
 <expression> ::= <expression> . <name>
 
 <expression> ::= - <delta>
+
+<filter> ::= day <integer>
+           | <weekday>
+           | day < <integer>
+           | day > <integer>
+           | day <= <integer>
+           | day >= <integer>
+           | day = <integer>
+           | <weekday>
+           | <filter> <filter>
+
+<range> ::= <integer> to <integer>
+          | <integer> to <basedate>
+          | <integer> to <datetime>
+          | <datetime> to <integer>
+          | <basedate> to <basedate>
+          | <datetime> to <basedate>
+          | <basedate> to <datetime>
+          | <datetime> to <datetime>
+          | <basedate> to <integer>
+
+<expression> ::= <filter> in <integer>
+               | <filter> in <basedate>
+               | <filter> in <range>

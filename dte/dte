@@ -3,6 +3,7 @@ from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, date, timedelta, time
 from dateutil.relativedelta import relativedelta, MO, TU, WE, TH, FR, SA, SU
+from dateutil.rrule import rrule, YEARLY
 from json.decoder import JSONDecodeError
 from ply.lex import TOKEN
 from time import sleep, mktime
@@ -236,6 +237,8 @@ tokens = (
     'UNTIL',
     'SINCE',
     'GT', 'GE', 'LT', 'LE', 'EQ', 'NE',
+    'OR', 'AND',
+    'TO',
     'NAME',
     'ORDINAL',
     'INTEGER',
@@ -274,15 +277,21 @@ t_SINCE = r'(?i)since'
 t_WAIT = r'(?i)wait'
 t_MONTH_LITERAL = r'(?i)month'
 t_WEEKDAY_LITERAL = r'(?i)weekday'
+t_OR = '(?i)or'
+t_AND = '(?i)and'
+t_TO = '(?i)to'
 
 reserved = [
             r'in',
             r'next|last',
             r'seconds|minutes|hours|days|weeks',
             r'until',
+            r'and|or',
+            r'to(?!morrow|day)',
             r'since',
             r'month',
             r'weekday',
+            r'unix',
         ]
 
 
@@ -453,17 +462,20 @@ def get_month_index_by_name(month_name):
                 return month_collection.index(month) + 1
 
 
-t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)'
+t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)' 
+
+# @TOKEN(_NAME)
+# def t_NAME(t):
+#     return t
 
 
 REGEX_1_12 = '(1[0-2]|[1-9])'
 REGEX_1_12_OPTIONALLY_PADDED = '(1[0-2]|0?[0-9])'
 BASEDATE_REGEX = r'(?i)(?:' + \
-        r'('+REGEX_ALL_MONTHS+r')(?!:|\+)\W+(\d+)|' + \
-        r'(\d+)(?!:|\+)\W('+REGEX_ALL_MONTHS+')|' + \
-        r'(\d+)(?!:|\+)\W'+REGEX_1_12_OPTIONALLY_PADDED + \
+        r'('+REGEX_ALL_MONTHS+r')(?!:|\+|;)\W+(\d+)|' + \
+        r'(\d+)(?!:|\+|;)\W('+REGEX_ALL_MONTHS+')|' + \
+        r'(\d+)(?!:|\+|;)\W'+REGEX_1_12_OPTIONALLY_PADDED + \
         ')'
-
 
 @TOKEN(BASEDATE_REGEX)
 def t_BASEDATE(t):
@@ -672,6 +684,8 @@ def weekday(t):
         return days[t.weekday()]
     elif type(t) == timedelta:
         return days[(names['n']+t).weekday()]
+    elif type(t) == list:
+        return [weekday(e) for e in t]
     else:
         raise Exception('Can\'t get day of week of object of type' +
                         str(type(t)))
@@ -811,9 +825,101 @@ def p_statement_expr(p):
             print(normalize(p[1]).strftime('%I %p'))
         elif isinstance(p[1], float):
             print('{:.{d}f}'.format(p[1], d=config.decimal_places))
+        elif type(p[1]) == list:
+            for e in p[1]:
+                print(normalize(e))
         else:
             print(normalize(p[1]))
         names['_'] = p[1]
+
+def p_filter(p):
+    '''filter : NAME INTEGER
+              | NAME LT INTEGER
+              | NAME GT INTEGER
+              | NAME LE INTEGER
+              | NAME GE INTEGER
+              | NAME EQUALS INTEGER
+              | WEEKDAY
+              | filter filter
+              '''
+              # | NAME NE INTEGER
+    p[0] = p[1:]
+
+
+def p_range(p):
+    '''range : INTEGER TO INTEGER
+             | BASEDATE TO BASEDATE
+             | DATETIME TO BASEDATE
+             | BASEDATE TO DATETIME
+             | DATETIME TO DATETIME
+             | BASEDATE TO INTEGER
+             | INTEGER TO BASEDATE
+             '''
+    p[0] = p[1:]
+
+def parse_filter(filtr):
+    filter_args = {}
+    for condition in filtr:
+        if type(condition[0]) == Weekday:
+            if 'byweekday' not in filter_args:
+                filter_args['byweekday'] = []
+            try:
+                weekday_ix = [wd.lower() for wd in days].index(condition[0].name)
+            except ValueError:
+                weekday_ix = [wd.lower() for wd in days_abbrev].index(condition[0].name)
+            filter_args['byweekday'] += [relativedelta_days[weekday_ix]]
+        elif condition[0] == 'day':
+            if 'bymonthday' not in filter_args:
+                filter_args['bymonthday'] = []
+            if condition[1] == '>':
+                filter_args['bymonthday'] += list(range(condition[2]+1,32)) 
+            elif condition[1] == '<':
+                filter_args['bymonthday'] += list(range(1,condition[2])) 
+            elif condition[1] == '<=':
+                filter_args['bymonthday'] += list(range(1,condition[2]+1)) 
+            elif condition[1] == '>=':
+                filter_args['bymonthday'] += list(range(condition[2],32)) 
+            elif condition[1] == '==':
+                filter_args['bymonthday'] += [condition[2]]
+            elif condition[1] == '!=':
+                filter_args['bymonthday'] += [d for d in range(0,32) if d != condition[2]]
+            else:
+                filter_args['bymonthday'] += [condition[1]]
+    return filter_args
+
+
+def resolve_range(r):
+    assert r[1] == 'to'
+    s,e = None,None
+    if type(r[0]) == Basedate:
+        s = r[0].to_datetime()
+    if type(r[2]) == Basedate:
+        e = r[2].to_datetime()
+    if type(r[0]) == int:
+        s = datetime(r[0], 1, 1)
+    if type(r[2]) == int:
+        e = datetime(r[2], 1, 1)
+    return s,e
+
+
+def p_statement_predicate_in(p):
+    '''expression : filter IN INTEGER
+                  | filter IN BASEDATE 
+                  | filter IN range
+                  '''
+    filter_args = parse_filter(p[1])
+    if type(p[3]) == Basedate:
+        filter_args['dtstart'] = p[3].to_datetime()
+        filter_args['until'] = p[3].to_datetime() + \
+                relativedelta(months=1) - timedelta(days=1)
+    if type(p[3]) == list and p[3][1] == 'to': # range
+        start, end = resolve_range(p[3])
+        filter_args['dtstart'] = start
+        filter_args['until'] = end
+    if type(p[3]) == int: # year
+        filter_args['dtstart'] = datetime(p[3],1,1)
+        filter_args['until'] = datetime(p[3]+1,1,1)-timedelta(days=1)
+    p[0] = list(rrule(YEARLY, **filter_args))
 
 
 def time2timedelta(n):
@@ -933,9 +1039,12 @@ def p_expression_comparison(p):
         if p[2] == '<=':
             p[0] = p[1] <= p[3]
         if p[2] == '==':
-            p[0] = p[1] == p[3] or \
-                abs((p[3] - p[1]).total_seconds()) < \
-                config.comparison_tolerance_seconds
+            try:
+                p[0] = p[1] == p[3] or \
+                    abs((p[3] - p[1]).total_seconds()) < \
+                    config.comparison_tolerance_seconds
+            except TypeError:
+                p[0] = False
         if p[2] == '!=':
             p[0] = p[1] != p[3]
         if type(p[1]) == datetime and \

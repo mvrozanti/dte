@@ -9,11 +9,14 @@ import unittest
 
 days = ['Monday', 'Tuesday', 'Wednesday',
         'Thursday', 'Friday', 'Saturday', 'Sunday']
-days_abbrev = [d[:3] for d in days]
 
 ISO_FORMAT = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$'
 
 YMD_FORMAT = r'^\d{4}-\d{2}-\d{2}$'
+
+YMD_LIST_FORMAT = r'(\d{4}-\d{2}-\d{2}|\n)*'
+
+DAY_LIST_FORMAT = r'(' + '|'.join(days) + '|\n)*'
 
 HMS_FORMAT = r'^\d+:\d+:\d+$'
 
@@ -170,14 +173,29 @@ test_expectancy = OrderedDict({
         'last sun in 2021'                      : lambda r: r == '2021-12-26',
         'days until Jan 2030'                   : lambda r: float(r) < 3002,
         '2020-01-29 + (1 year + 1 month)'       : lambda r: r == '2021-02-28',
+        'friday in 2015'                        : lambda r: re.match(YMD_LIST_FORMAT, r),
+        'fri in 2015'                           : lambda r: re.match(YMD_LIST_FORMAT, r),
+        'friday day 13 in 2015'                 : lambda r: re.match(YMD_LIST_FORMAT, r),
+        'friday day 13 in 2015.weekday'         : lambda r: re.match(DAY_LIST_FORMAT, r),
+        'friday day 13 in August 2021'          : lambda r: r == '2021-08-13',
+        'friday day 13 in August 2021.weekday'  : lambda r: r == 'Friday',
+        'friday day 13 in Jan 2015 to Jan 2019' : lambda r: re.match(YMD_LIST_FORMAT, r),
+        'friday day < 8 in Jan 2015 to Jan 2019': lambda r: re.match(YMD_LIST_FORMAT, r),
+        'friday day > 8 in Jan 2015 to Jan 2019': lambda r: re.match(YMD_LIST_FORMAT, r),
+        'friday day < 8 in Jan 2015' : lambda r: r == '2015-01-02',
+        # 'friday day = 8 in Jan 2015' : lambda r: r == '2015-01-02',
+        # 'fris in 2015' # rrule
+        # 'fridays in 2015' # rrule
+        # 'easter 2014'                       : lambda
+        # 'days until easter'                 : lambda
+        # 'days since easter'                 : lambda
         })
 
 
 def run(test):
     dte_location = os.path.dirname(os.path.realpath(__file__)) \
-                             + op.sep + '..'   \
-                             + op.sep + 'dte' \
-                             + op.sep + 'dte'
+                             + op.sep + '..' \
+                             + (op.sep + 'dte')*2
     p = Popen(dte_location, stdin=PIPE, stdout=PIPE)
     out, err = p.communicate(test.encode('utf-8'))
     out = out.decode('utf-8').replace('\n', '')
