@@ -20,7 +20,7 @@ DAY_LIST_FORMAT = r'(' + '|'.join(days) + '|\n)*'
 
 HMS_FORMAT = r'^\d+:\d+:\d+$'
 
-DELTA_FORMAT = r'-?\d+ days?, \d{1,2}:\d{2}:\d{2}'
+DELTA_FORMAT = r'(-?\d+ years?, (-?\d+ months?(, )?)? ?)?(-?\d+ days?, \d{1,2}:\d{2}:\d{2})?'
 
 BASEDATE_FORMAT = r'\d+-\w+'
 
@@ -83,12 +83,16 @@ test_expectancy = OrderedDict({
         '1d1m in hours'                         : lambda r: r == '24.02',
         '1970 Jan 1 - 3h in unix'               : lambda r: int(r) <= 24*60*60,
         '1w'                                    : lambda r: r == '7 days, 0:00:00',
-        '2020 Jan 27 + 1y == 2021 Jan 26'       : lambda r: eval(r),
+        '2020 Jan 27 + 1y == 2021 Jan 27'       : lambda r: eval(r),
         '2 < 1'                                 : lambda r: not eval(r),
         '12h:00 pm != 12h:00 am'                : lambda r: eval(r),
         '22h+2m'                                : lambda r: r == '22:02:00', 
         '22h22m'                                : lambda r: r == '22:22:00', 
         '6y5M4d3h2m1s'                          : lambda r: re.match(DELTA_FORMAT, r),
+        '1y2M'                                  : lambda r: r == '1 year, 2 months',
+        '0y2M'                                  : lambda r: r == '2 months',
+        '-1y2M'                                 : lambda r: re.match(DELTA_FORMAT, r),
+        '1M1d'                                  : lambda r: r == '1 month, 1 day, 0:00:00',
         '7y6M5w4d3h2m1.1s'                      : lambda r: re.match(DELTA_FORMAT, r),
         '2h2m'                                  : lambda r: r == '2:02:00',
         '3h+3M'                                 : lambda r: re.match(DELTA_FORMAT, r),
@@ -187,6 +191,7 @@ test_expectancy = OrderedDict({
         'friday day < 13 in 2014 sep'           : lambda r: re.match(YMD_LIST_FORMAT, r),
         'day 13 friday in 2021'                 : lambda r: re.match(YMD_LIST_FORMAT, r),
         '1970 january 1st'                      : lambda r: re.match(YMD_LIST_FORMAT, r), 
+        'jan 1 + 99999M'                        : lambda r: r.endswith('01')
         # 'Jan 2014 3:00'                         : lambda r: False,
         # '2014 Jan 3:00'                         : lambda r: False,
 

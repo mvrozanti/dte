@@ -622,16 +622,11 @@ def parse_units(units_vals):
             unit += 's'
         if short:
             if unit.lower() == 'y':
-                parsed += (names['n'] +
-                           relativedelta(years=units_vals[unit])) - \
-                           names['n']
+                parsed += relativedelta(years=units_vals[unit])
             elif unit == 'M':
-                parsed += (names['n'] +
-                           relativedelta(months=units_vals[unit])) - \
-                                   names['n']
+                parsed += relativedelta(months=units_vals[unit])
             else:
-                    parsed += timedelta(**{unit_map[unit]: val})
-
+                parsed += timedelta(**{unit_map[unit]: val})
         else:
             try:
                 parsed += timedelta(**{unit: val})
@@ -784,6 +779,21 @@ def normalize(t):
     if type(t) == datetime and \
             is_000(t):
         t = t.date()
+    if type(t) == relativedelta:
+        tr = []
+        if t.years != 0:
+            tr += [f'{t.years} year{"s" if abs(t.years) != 1 else ""}']
+        if t.months != 0:
+            tr += [f'{t.months} month{"s" if abs(t.months) != 1 else ""}']
+        if t.days == t.hours == t.minutes == t.seconds == 0:
+            ta = ''
+        else:
+            ta = str(timedelta(days=t.days, hours=t.hours, minutes=t.minutes, seconds=t.seconds))
+        t = ''
+        if tr:
+            t += ', '.join(tr)
+        if ta:
+            t += ', ' + ta
     return t
 
 
@@ -815,8 +825,6 @@ def p_statement_expr(p):
         p[1] = Basedate(closest_month.year, closest_month.month)
     if type(p[1]) == dateutil._common.weekday:
         p[1] = (names['n'] - relativedelta(weekday=p[1])).date()
-    if type(p[1]) == relativedelta:
-        p[1] = (names['n'] + p[1]).date()
     if p[1] is not None:
         if config.datetime_output_format != 'ISO8601':
             print(normalize(p[1]).strftime(config.datetime_output_format))
