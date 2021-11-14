@@ -306,7 +306,7 @@ REGEX_ALL_MONTHS = r'|'.join(months) + r'|' + \
                    r'|'.join(months_en_abbrev)
 REGEX_DOY = r'(\d+(?!:)(?:\W)\d+(?!:)(?:\W)\d+|\d+[\W\s]+(?:' + \
         REGEX_ALL_MONTHS + \
-        r')(?:\s|[^\w\+])+\d+)'
+        r')(?:\s|[^\w\+])+\d+)(?:st|nd|rd|th)?'
 REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
@@ -318,7 +318,6 @@ DATETIME_REGEX = \
     f'(?::(?:{REGEX_0_59}([sS])?))?' + \
     r'))(?:\s*([aApP][mM]))?' + \
     '){1,2}'
-
 
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
