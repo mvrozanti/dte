@@ -105,6 +105,7 @@ OBJECTS
             it can also represent time only:
 
                 22:22:22
+                22:22
                 22h:22
                 22H:22
                 22m:22
@@ -114,9 +115,6 @@ OBJECTS
                 6h:20 am
                 6h20 am
 
-            notice that the combination of INTEGER:INTEGER
-            is ambiguous and therefore invalid syntax.
-
     BASEDATE
 
             a basedate object is a point in time that
@@ -124,6 +122,13 @@ OBJECTS
 
                 2014 Jan
                 Jan 2014
+
+    INTEGERS
+
+        Integers by themselves are interpreted as unix timestamps.
+                
+            1  : is interpreted as the point in time one second 
+                 after Epoch.
 
 VARIABLES
 
