@@ -17,10 +17,20 @@ import os
 import os.path as op
 import re
 import sys
+import traceback
 
 import signal
 signal.signal(signal.SIGINT, lambda s, _: sys.exit(0))
 
+def exception_handler(func):
+    def inner_function(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except TypeError:
+            print('='*10)
+            traceback.print_exc()
+            print('='*10)
+    return inner_function
 
 def read_write_get_config():
     config_dir = appdirs.user_config_dir()
@@ -357,7 +367,7 @@ def t_DATETIME(t):
                 second_unit == 'm' or
                 third_val) and \
             int(first_val) > 12:
-        raise Exception('Conflicting 24-hour time in 12-hour clock')
+        print('Conflicting 24-hour time in 12-hour clock', file=sys.stderr)
 
     if date_str:
         if any(month.lower() in date_str.lower()
@@ -370,7 +380,7 @@ def t_DATETIME(t):
                     date = datetime.strptime(
                             f'{y.zfill(4)}-{b}-{d}', '%Y-%B-%d')
                 except ValueError:
-                    raise Exception(f'Invalid syntax: {date_str}')
+                    print(f'Invalid syntax: {date_str}', file=sys.stderr)
         else:
             y, M, d = replace(r'\D', '-', date_str).split('-')
             date = datetime.strptime(
@@ -451,7 +461,7 @@ def t_DELTA(t):
         u, _ = list(units_vals.items())[list(units_vals.keys()).index('')-1]
         next_unit_index = SHORT_UNITS_STR.index(u)-1
         if next_unit_index == -1:
-            raise Exception('Invalid delta')
+            print('Invalid delta', file=sys.stderr)
         next_unit = SHORT_UNITS_STR[next_unit_index]
         if next_unit.lower() == u.lower():
             next_unit = SHORT_UNITS_STR[SHORT_UNITS_STR.index(u)-2]
@@ -673,7 +683,7 @@ def wait(t):
     elif isinstance(t, timedelta):
         delta = t
     else:
-        raise Exception('Wait accepts a time point or time delta only')
+        print('Wait accepts a time point or time delta only', file=sys.stderr)
     if delta > timedelta(0):
         sleep(delta.total_seconds())
 
@@ -686,7 +696,7 @@ def weekday(t):
     elif type(t) == list:
         return [weekday(e) for e in t]
     else:
-        raise Exception('Can\'t get day of week of object of type' +
+        print('Can\'t get day of week of object of type' , file=sys.stderr+
                         str(type(t)))
 
 
@@ -768,16 +778,19 @@ def p_expression_weekday_literal_expression(p):
 def p_statement_invalid_assignment(p):
     '''statement : WEEKDAY EQUALS expression
                  '''
-    raise Exception(f'Can\'t assign expression to {p[1]} keyword')
+    print(f'Can\'t assign expression to {p[1]} keyword', file=sys.stderr)
 
-
-def p_statement_assign(p):
-    'statement : NAME EQUALS expression'
+@exception_handler
+def statement_assign(p):
     global n
     n = None
     if is_reserved(p[1]):
-        raise Exception('Can\'t use reserved keyword')
+        print('Can\'t use reserved keyword', file=sys.stderr)
     names[p[1]] = p[3]
+
+def p_statement_assign(p):
+    'statement : NAME EQUALS expression'
+    statement_assign(p)
 
 
 def normalize(t):
@@ -801,17 +814,19 @@ def normalize(t):
             t += ', ' + ta
     return t
 
-
-def p_expression_expression_point(p):
-    'expression : expression point'
+@exception_handler
+def expression_expression_point(p):
     try:
         p[0] = datetime.combine(p[1], p[2])
     except TypeError:
         p[0] = datetime.combine(p[2], p[1])
 
+def p_expression_expression_point(p):
+    'expression : expression point'
+    expression_expression_point(p)
 
-def p_point_name(p):
-    'point : NAME'
+@exception_handler
+def point_name(p):
     if p[1] not in names:
         print(f'{p[1]} is not loaded')
         return
@@ -820,9 +835,12 @@ def p_point_name(p):
     else:
         p[0] = names[p[1]]
 
+def p_point_name(p):
+    'point : NAME'
+    point_name(p)
 
-def p_statement_expr(p):
-    'statement : expression'
+@exception_handler
+def statement_expr(p):
     if type(p[1]) is Weekday:
         p[1] = get_closest_week_day(str(p[1]))
     if type(p[1]) is Month:
@@ -842,6 +860,11 @@ def p_statement_expr(p):
         else:
             print(normalize(p[1]))
         names['_'] = p[1]
+
+
+def p_statement_expr(p):
+    'statement : expression'
+    statement_expr(p)
 
 def p_filter(p):
     '''filter : NAME INTEGER
@@ -914,12 +937,8 @@ def resolve_range(r):
         e = datetime(r[2], 1, 1)
     return s,e
 
-
-def p_statement_predicate_in(p):
-    '''expression : filter IN INTEGER
-                  | filter IN BASEDATE 
-                  | filter IN range
-                  '''
+@exception_handler
+def statement_predicate_in(p):
     filter_args = parse_filter(p[1])
     if type(p[3]) == Basedate:
         filter_args['dtstart'] = p[3].to_datetime()
@@ -934,15 +953,19 @@ def p_statement_predicate_in(p):
         filter_args['until'] = datetime(p[3]+1,1,1)-timedelta(days=1)
     p[0] = list(rrule(YEARLY, **filter_args))
 
+def p_statement_predicate_in(p):
+    '''expression : filter IN INTEGER
+                  | filter IN BASEDATE 
+                  | filter IN range
+                  '''
+    statement_predicate_in(p)
+
 
 def time2timedelta(n):
     return timedelta(hours=n.hour, minutes=n.minute, seconds=n.second)
 
-
-def p_expression_binop(p):
-    '''expression : expression PLUS expression
-                  | expression MINUS expression
-                  '''
+@exception_handler
+def expression_binop(p):
     if type(p[1]) == str:
         p[1] = Weekday(p[1])
 
@@ -967,18 +990,6 @@ def p_expression_binop(p):
     if type(p[3]) == time and type(p[1]) == timedelta:
         p[3] = time2timedelta(p[3])
 
-    # if type(p[1]) == date and type(p[3]) == relativedelta:
-    #     p[1] = datetime.combine(p[1], datetime.min.time())
-    #
-    # if type(p[3]) == date and type(p[1]) == relativedelta:
-    #     p[3] = datetime.combine(p[3], datetime.min.time())
-    #
-    # if type(p[1]) == datetime and type(p[3]) == relativedelta:
-    #     p[3] = names['n'] - p[3]
-    #
-    # if type(p[3]) == datetime and type(p[1]) == relativedelta:
-    #     p[1] = names['n'] - p[1]
-
     if type(p[3]) == date and type(p[1]) == timedelta:
         p[3] = datetime.combine(p[3], datetime.min.time())
 
@@ -992,10 +1003,10 @@ def p_expression_binop(p):
         p[3] = datetime.combine(p[3], datetime.min.time())
 
     if type(p[1]) == type(p[3]) == date and p[2] == '+':  # noqa: E721
-        raise Exception(f'Can\'t add two dates: {p[1]} + {p[3]}')
+        print(f'Can\'t add two dates: {p[1]} + {p[3]}', file=sys.stderr)
 
     if p[1] is None or p[3] is None:
-        raise Exception(f'In {p[2]} expression, both operands are None')
+        print(f'In {p[2]} expression, both operands are None', file=sys.stderr)
 
     if type(p[1]) == Weekday:
         p[1] = get_closest_week_day(str(p[1]))
@@ -1006,16 +1017,14 @@ def p_expression_binop(p):
     elif p[2] == '-':
         p[0] = p[1] - p[3]
 
-
-def p_expression_comparison(p):
-    '''expression : expression GT expression
-                  | expression LT expression
-                  | expression GE expression
-                  | expression LE expression
-                  | expression EQ expression
-                  | expression NE expression
+def p_expression_binop(p):
+    '''expression : expression PLUS expression
+                  | expression MINUS expression
                   '''
+    expression_binop(p)
 
+@exception_handler
+def expression_comparison(p):
     if type(p[1]) == date and type(p[3]) == datetime:
         p[1] = datetime.combine(p[1], datetime.min.time())
 
@@ -1029,7 +1038,7 @@ def p_expression_comparison(p):
         elif p[2] == '==':
             pass
         else:
-            raise Exception('To be implemented')
+            print('To be implemented', file=sys.stderr)
         return
 
     if type(p[3]) == Weekday and type(p[1]) == date:
@@ -1039,7 +1048,7 @@ def p_expression_comparison(p):
         elif p[2] == '==':
             pass
         else:
-            raise Exception('To be implemented')
+            print('To be implemented', file=sys.stderr)
         return
 
     try:
@@ -1068,6 +1077,17 @@ def p_expression_comparison(p):
             p[3] = p[3].date()
     except TypeError as e:
         print(str(e))
+
+
+def p_expression_comparison(p):
+    '''expression : expression GT expression
+                  | expression LT expression
+                  | expression GE expression
+                  | expression LE expression
+                  | expression EQ expression
+                  | expression NE expression
+                  '''
+    expression_comparison(p)
 
 
 def get_extremity_weekday_of_year(direction, weekday, year):
@@ -1140,13 +1160,13 @@ def string_to_common_weekday(weekday):
 def cyclic(t, direction):
     cyclic_direction = names['n']
     found = False
-    for _ in range(7):
+    for i in range(7):
         cyclic_direction += timedelta(days=direction)
         if days[cyclic_direction.weekday()].lower().startswith(str(t).lower()):
             found = True
             break
     if not found:
-        raise Exception('Cyclic operation fatal error')
+        print('Cyclic operation fatal error', file=sys.stderr)
     return cyclic_direction.date()
 
 
@@ -1157,14 +1177,8 @@ def get_relative_basedate(direction):
         cyclic_direction += timedelta(days=direction)
     return datetime(cyclic_direction.year, cyclic_direction.month, 1)
 
-
-def p_point_relativeindex(p):
-    '''point : relativeindex IN MONTH
-             | relativeindex IN INTEGER
-             | relativeindex IN BASEDATE
-             | relativeindex IN relativeindex
-             | relativeindex
-             '''
+@exception_handler
+def point_relativeindex(p):
     direction, operand = p[1]
     if len(p) > 2:
         if type(p[3]) == int:
@@ -1189,6 +1203,15 @@ def p_point_relativeindex(p):
         else:
             p[0] = cyclic(operand, leap)
 
+def p_point_relativeindex(p):
+    '''point : relativeindex IN MONTH
+             | relativeindex IN INTEGER
+             | relativeindex IN BASEDATE
+             | relativeindex IN relativeindex
+             | relativeindex
+             '''
+    point_relativeindex(p)
+
 
 def p_relativeindex_indexable_op(p):
     '''relativeindex : INDEXABLE_OP WEEKDAY
@@ -1210,21 +1233,16 @@ def delta_to_unit(delta, unit):
     if unit == 'weeks':
         return total_seconds / 60 / 60 / 24 / 7
     if unit in ['months', 'years']:
-        raise Exception('Invalid conversion')
+        print('Invalid conversion', file=sys.stderr)
 
-
-def p_expression_unit_until_point(p):
-    '''expression : UNIT UNTIL expression
-                  | UNIT SINCE expression
-                  | UNIT SINCE NAME
-                  | UNIT UNTIL NAME
-                  '''
+@exception_handler
+def expression_unit_until_point(p):
     if p[1].lower() in unit_map.values():
         if type(p[3]) == str:
             if p[3] in names:
                 p[3] = datetime.combine(names[p[3]], datetime.min.time())
             else:
-                raise Exception('{p[3]} is unrecognized')
+                print('{p[3]} is unrecognized', file=sys.stderr)
         if type(p[3]) == Weekday:
             p[3] = get_closest_week_day(p[3].name)
         if type(p[3]) == Basedate:
@@ -1249,8 +1267,15 @@ def p_expression_unit_until_point(p):
                 p_expression_unit_until_point(p)
 
     else:
-        raise Exception('Invalid syntax: {p[1]} {p[2]} {p[3]}')
+        print('Invalid syntax: {p[1]} {p[2]} {p[3]}', file=sys.stderr)
 
+def p_expression_unit_until_point(p):
+    '''expression : UNIT UNTIL expression
+                  | UNIT SINCE expression
+                  | UNIT SINCE NAME
+                  | UNIT UNTIL NAME
+                  '''
+    expression_unit_until_point(p)
 
 def p_expression_generic(p):
     '''expression : DELTA
@@ -1259,14 +1284,17 @@ def p_expression_generic(p):
                   '''
     p[0] = p[1]
 
-
-def p_timestamp_integer(p):
-    'timestamp : INTEGER'
+@exception_handler
+def timestamp_integer(p):
     if config.timestamp_unit == 'seconds':
         ts = int(p[1])
     else:
         ts = int(p[1])/1000
     p[0] = datetime.fromtimestamp(ts)
+
+def p_timestamp_integer(p):
+    'timestamp : INTEGER'
+    timestamp_integer(p)
 
 
 def p_expression_point_in_unit(p):
@@ -1277,15 +1305,19 @@ def p_expression_point_in_unit(p):
     p_statement_expression_in_unit(p)
 
 
-def p_statement_expression_in_unit(p):
-    'expression : expression IN UNIT'
+@exception_handler
+def statement_expression_in_unit(p):
     to_unix = p[3] == 'unix'
     if type(p[1]) == timedelta and to_unix:
-        raise Exception('Can\'t convert timedelta to unix timestamp')
+        print('Can\'t convert timedelta to unix timestamp', file=sys.stderr)
     if to_unix:
         p[0] = int(mktime(p[1].timetuple()))
     if p[3].lower() in unit_map.values():
         p[0] = delta_to_unit(p[1], p[3].lower())
+
+def p_statement_expression_in_unit(p):
+    'expression : expression IN UNIT'
+    statement_expression_in_unit(p)
 
 
 def p_point(p):
