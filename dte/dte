@@ -764,10 +764,14 @@ precedence = (
         )
 
 
-def p_statement_wait_until_point(p):
-    '''statement : WAIT UNTIL point
+def p_statement_wait(p):
+    '''statement : WAIT UNTIL expression
+                 | WAIT DELTA
                  '''
-    wait(p[3])
+    if len(p) > 3:
+        wait(p[3])
+    else:
+        wait(p[2])
 
 
 def p_statements(p):

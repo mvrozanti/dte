@@ -208,7 +208,7 @@ def run(test):
     dte_location = os.path.dirname(os.path.realpath(__file__)) \
                              + op.sep + '..' \
                              + (op.sep + 'dte')*2
-    p = Popen(dte_location, stdin=PIPE, stdout=PIPE)
+    p = Popen(dte_location, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate(test.encode('utf-8'))
     out = out.decode('utf-8').replace('\n', '')
     return out, err

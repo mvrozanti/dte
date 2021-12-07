@@ -73,13 +73,13 @@ The following examples are generated based on tests run, so many results will be
 
 `1 in unix` returns `1`
 
-`n - 1234` returns `18968 days, 21:38:48.686980`
+`n - 1234` returns `18968 days, 22:02:45.828327`
 
 `10h30 + 14h` returns `1 day, 0:30:00`
 
 `2021 feb 14 12:00:00` returns `2021-02-14 12:00:00`
 
-`seconds until 2021 feb 14 12:00:00` returns `-25599562.95`
+`seconds until 2021 feb 14 12:00:00` returns `-25601000.08`
 
 `1-1-1 23:23:23` returns `0001-01-01 23:23:23`
 
@@ -205,7 +205,7 @@ The following examples are generated based on tests run, so many results will be
 
 `YD.day` returns `6`
 
-`n` returns `2021-12-07 18:59:28.761795`
+`n` returns `2021-12-07 19:23:25.636872`
 
 `next Sunday` returns `2021-12-12`
 
@@ -213,9 +213,9 @@ The following examples are generated based on tests run, so many results will be
 
 `2000-10-10 16:00` returns `2000-10-10 16:00:00`
 
-`seconds until 3000 Apr 10` returns `30873330030.88`
+`seconds until 3000 Apr 10` returns `30873328594.02`
 
-`seconds since 3000 Apr 10` returns `-30873330030.80`
+`seconds since 3000 Apr 10` returns `-30873328593.93`
 
 `next Sunday == last sunday` returns `False`
 
@@ -265,9 +265,9 @@ The following examples are generated based on tests run, so many results will be
 
 `1996 August 28 9 AM` returns `1996-08-28 09:00:00`
 
-`seconds until tomorrow` returns `18028.64`
+`seconds until tomorrow` returns `16591.84`
 
-`seconds until 11 pm` returns `14428.55`
+`seconds until 11 pm` returns `12991.76`
 
 `next month` returns `2022-01-01`
 
@@ -283,7 +283,7 @@ The following examples are generated based on tests run, so many results will be
 
 `6pm+1h` returns `19:00:00`
 
-`days until 2030-12-25` returns `3304.21`
+`days until 2030-12-25` returns `3304.19`
 
 `last fri in 2014 December` returns `2014-12-26`
 
@@ -307,9 +307,9 @@ The following examples are generated based on tests run, so many results will be
 
 `next mon + 1d` returns `2021-12-14`
 
-`days until next mon` returns `5.21`
+`days until next mon` returns `5.19`
 
-`days until mon` returns `-1.79`
+`days until mon` returns `-1.81`
 
 `today==mon` returns `False`
 
@@ -351,7 +351,7 @@ The following examples are generated based on tests run, so many results will be
 
 `last sun in 2021` returns `2021-12-26`
 
-`days until Jan 2030` returns `2946.21`
+`days until Jan 2030` returns `2946.19`
 
 `2020-01-29 + (1 year + 1 month)` returns `2021-02-28`
 
