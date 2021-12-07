@@ -188,6 +188,8 @@ FUNCTIONS / ATTRIBUTES
 
     wait DELTA           : sleeps for the duration
 
+    wait UNTIL TIME_POINT: sleeps until the time point
+
     next WEEKDAY         : returns the date for the next weekday
 
     last WEEKDAY         : returns the date for the last weekday
@@ -300,6 +302,7 @@ reserved = [
             r'in',
             r'next|last',
             r'seconds|minutes|hours|days|weeks',
+            r'wait',
             r'until',
             r'and|or',
             r'to(?!morrow|day)',
@@ -673,11 +676,12 @@ def t_error(t):
 import ply.lex as lex  # noqa: E402
 lex.lex(debug=False)
 
-
 def wait(t):
     now = names['n']
     if isinstance(t, datetime):
         delta = t - now
+    elif isinstance(t, date):
+        delta = t - now.date()
     elif isinstance(t, time):
         delta = datetime.combine(now.date(), t) - now
     elif isinstance(t, timedelta):
@@ -761,7 +765,8 @@ precedence = (
 
 
 def p_statement_wait_until_point(p):
-    'statement : WAIT UNTIL point'
+    '''statement : WAIT UNTIL point
+                 '''
     wait(p[3])
 
 

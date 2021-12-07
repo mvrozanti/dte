@@ -118,6 +118,7 @@ test_expectancy = OrderedDict({
         '2012-12-13-3y.weekday'                 : lambda r: r == 'Sunday',
         't - next Sunday'                       : lambda r: re.match(DELTA_FORMAT, r),
         'wait .001s'                            : lambda r: len(r) == 0,
+        'wait until (n+.001s)'                  : lambda r: len(r) == 0,
         'weekday 0'                             : lambda r: r in ['Wednesday', 'Thursday'],
         'Jan 2014'                              : lambda r: re.match(BASEDATE_FORMAT, r),
         'first friday in April 2014'            : lambda r: r == '2014-04-04',
