@@ -681,7 +681,7 @@ def wait(t):
     if isinstance(t, datetime):
         delta = t - now
     elif isinstance(t, date):
-        delta = t - now.date()
+        delta = datetime.combine(t, datetime.min.time()) - now
     elif isinstance(t, time):
         delta = datetime.combine(now.date(), t) - now
     elif isinstance(t, timedelta):
@@ -745,7 +745,6 @@ names = {
             'hour': lambda t: t.hour,
             'minute': lambda t: t.minute,
             'second': lambda t: t.second,
-            'wait': lambda t: wait(t),
             'weekday': lambda t: weekday(t),
             'dayofweek': lambda t: weekday(t),
             'help': lambda: print(HELP),
