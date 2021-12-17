@@ -1,4 +1,5 @@
 <statement> ::= wait until <point>
+              | wait <delta>
 
 <statement> ::= <statement> ; <statement>
 
