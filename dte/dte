@@ -288,15 +288,15 @@ t_LT = r'<'
 t_LE = r'<='
 t_EQ = r'=='
 t_NE = r'!='
-t_IN = r'(?i)in'
-t_UNTIL = r'(?i)until'
-t_SINCE = r'(?i)since'
-t_WAIT = r'(?i)wait'
-t_MONTH_LITERAL = r'(?i)month'
-t_WEEKDAY_LITERAL = r'(?i)weekday'
-t_OR = '(?i)or'
-t_AND = '(?i)and'
-t_TO = '(?i)to'
+t_IN = r'(?i:in)'
+t_UNTIL = r'(?i:until)'
+t_SINCE = r'(?i:since)'
+t_WAIT = r'(?i:wait)'
+t_MONTH_LITERAL = r'(?i:month)'
+t_WEEKDAY_LITERAL = r'(?i:weekday)'
+t_OR = '(?i:or)'
+t_AND = '(?i:and)'
+t_TO = '(?i:to)'
 
 reserved = [
             r'in',
@@ -329,13 +329,13 @@ REGEX_0_23 = r'(2[0-3]|1?[0-9]|00)'
 REGEX_0_59 = r'([0-5]?[0-9])'
 
 DATETIME_REGEX = \
-    fr'(?i)(?:{REGEX_DOY}\s?|' + \
+    fr'(?i:(?:{REGEX_DOY}\s?|' + \
     r'(?:(1[0-2]|[0-9])\s*([aApP][mM])|' + \
     fr'{REGEX_0_59}([hHm])?' + \
     f'(?::{REGEX_0_59}([msS])?' + \
     f'(?::(?:{REGEX_0_59}([sS])?))?' + \
     r'))(?:\s*([aApP][mM]))?' + \
-    '){1,2}'
+    '){1,2})'
 
 @TOKEN(DATETIME_REGEX)
 def t_DATETIME(t):
@@ -488,11 +488,11 @@ t_NAME = '(?!' + '|'.join(reserved) + ')([a-zA-Z_][a-zA-Z0-9_]*)'
 
 REGEX_1_12 = '(1[0-2]|[1-9])'
 REGEX_1_12_OPTIONALLY_PADDED = '(1[0-2]|0?[0-9])'
-BASEDATE_REGEX = r'(?i)(?:' + \
+BASEDATE_REGEX = r'(?i:(?:' + \
         r'('+REGEX_ALL_MONTHS+r')(?!:|\+|;)\W+(\d+)|' + \
         r'(\d+)(?!:|\+|;)\W('+REGEX_ALL_MONTHS+')|' + \
         r'(\d+)(?!:|\+|;)\W'+REGEX_1_12_OPTIONALLY_PADDED + \
-        ')'
+        '))'
 
 @TOKEN(BASEDATE_REGEX)
 def t_BASEDATE(t):
@@ -515,12 +515,12 @@ def t_BASEDATE(t):
 
 
 def t_UNIT(t):
-    r'(?i)(seconds|minutes|hours|days|weeks|months|years|unix)'
+    r'(?i:seconds|minutes|hours|days|weeks|months|years|unix)'
     return t
 
 
-WEEKDAY_TOKEN = r'(?i)Monday|Tuesday|Wednesday|Thursday|Friday|' + \
-    'Saturday|Sunday|Mon(?!th)|Tue|Wed|Thu|Fri|Sat|Sun'
+WEEKDAY_TOKEN = r'(?i:Monday|Tuesday|Wednesday|Thursday|Friday|' + \
+    'Saturday|Sunday|Mon(?!th)|Tue|Wed|Thu|Fri|Sat|Sun)'
 
 
 @TOKEN(WEEKDAY_TOKEN)
@@ -529,7 +529,7 @@ def t_WEEKDAY(t):
     return t
 
 
-@TOKEN(r'(?i)' + '|'.join(months) + '|'.join(months_abbrev))
+@TOKEN(r'(?i:' + '|'.join(months) + '|'.join(months_abbrev) + ')')
 def t_MONTH(t):
     t.value = Month(t.value)
     return t
@@ -556,7 +556,7 @@ ordinalIndexables = [
 
 
 def t_INDEXABLE_OP(t):
-    r'(?i)(next|last|first|prev(ious)?|1st|2nd|3rd|4th|5th|first|second|third|fourth|fifth)'
+    r'(?i:(next|last|first|prev(ious)?|1st|2nd|3rd|4th|5th|first|second|third|fourth|fifth))'
     t.value = t.value.lower()
     if t.value.startswith('previous'):
         t.value = Indexable.PREVIOUS

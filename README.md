@@ -69,18 +69,18 @@ The following examples are generated based on tests run, so many results will be
 |`friday day 13 in August 2021.weekday`|`Friday`|
 |`friday day 13 in August 2021`|`2021-08-13`|
 |`2020-01-29 + (1 year + 1 month)`|`2021-02-28`|
-|`days until Jan 2030`|`2936.18`|
+|`days until Jan 2030`|`2401.04`|
 |`last sun in 2021`|`2021-12-26`|
-|`april+1M`|`2022-05-01`|
-|`t+1d 08h30`|`2021-12-18 08:30:00`|
+|`april+1M`|`2023-05-01`|
+|`t+1d 08h30`|`2023-06-06 08:30:00`|
 |`1am t == t 1am`|`True`|
-|`1am t`|`2021-12-17 01:00:00`|
+|`1am t`|`2023-06-05 01:00:00`|
 |`(2020-10-10+1d) 3pm`|`2020-10-11 15:00:00`|
 |`t 1:00 == t 1am`|`True`|
-|`t 1:00`|`2021-12-17 01:00:00`|
-|`t 1am`|`2021-12-17 01:00:00`|
-|`august`|`2021-Aug`|
-|`4th wed in august`|`2021-08-25`|
+|`t 1:00`|`2023-06-05 01:00:00`|
+|`t 1am`|`2023-06-05 01:00:00`|
+|`august`|`2023-Aug`|
+|`4th wed in august`|`2023-08-23`|
 |`5th sunday in 2021`|`2021-01-31`|
 |`4th sunday in 2021`|`2021-01-24`|
 |`3rd sunday in 2021`|`2021-01-17`|
@@ -89,37 +89,37 @@ The following examples are generated based on tests run, so many results will be
 |`2014 Jan + 1M`|`2014-02-01`|
 |`Jan 2014 + 1M`|`2014-02-01`|
 |`seconds in 24h`|`86400.00`|
-|`today==mon`|`False`|
-|`days until mon`|`2.18`|
-|`days until next mon`|`2.18`|
-|`next mon + 1d`|`2021-12-21`|
-|`monday+1d`|`2021-12-21`|
-|`weekday t+100d`|`Sunday`|
+|`today==mon`|`True`|
+|`days until mon`|`-0.96`|
+|`days until next mon`|`6.04`|
+|`next mon + 1d`|`2023-06-13`|
+|`monday+1d`|`2023-05-30`|
+|`weekday t+100d`|`Wednesday`|
 |`(weekday t+100d)==100d.weekday`|`True`|
-|`(weekday t+100d)`|`Sunday`|
-|`weekday tm`|`Saturday`|
-|`yesterday==thu`|`True`|
-|`yesterday==thursday`|`True`|
+|`(weekday t+100d)`|`Wednesday`|
+|`weekday tm`|`Tuesday`|
+|`yesterday==thu`|`False`|
+|`yesterday==thursday`|`False`|
 |`last fri in Dec 2014`|`2014-12-26`|
 |`last fri in 2014 Dec`|`2014-12-26`|
 |`last fri in 2014 December`|`2014-12-26`|
-|`days until 2030-12-25`|`3294.18`|
+|`days until 2030-12-25`|`2759.04`|
 |`6pm+1h`|`19:00:00`|
 |`2014 01`|`2014-Jan`|
-|`1st friday in april`|`2022-04-01`|
-|`first friday in april`|`2022-04-01`|
-|`1st friday in next month`|`2022-01-07`|
-|`first friday in next month`|`2022-01-07`|
-|`next month`|`2022-01-01`|
-|`seconds until 11 pm`|`11736.53`|
-|`seconds until tomorrow`|`15336.45`|
+|`1st friday in april`|`2023-04-07`|
+|`first friday in april`|`2023-04-07`|
+|`1st friday in next month`|`2023-07-07`|
+|`first friday in next month`|`2023-07-07`|
+|`next month`|`2023-07-01`|
+|`seconds until 11 pm`|`85931.98`|
+|`seconds until tomorrow`|`3131.80`|
 |`1996 August 28 9 AM`|`1996-08-28 09:00:00`|
 |`2s2s`|`0:00:04`|
 |`1 hour in seconds`|`3600.00`|
 |`1h in seconds`|`3600.00`|
 |`5m+5m`|`0:10:00`|
 |`1957-12-26 22:22:22 in unix`|`-379118258`|
-|`yd-5h`|`2021-12-15 19:00:00`|
+|`yd-5h`|`2023-06-03 19:00:00`|
 |`1st sun in April 2021`|`2021-04-04`|
 |`first sun in April 2021`|`2021-04-04`|
 |`1st friday in April 2014`|`2014-04-04`|
@@ -128,7 +128,7 @@ The following examples are generated based on tests run, so many results will be
 |`weekday 0`|`Wednesday`|
 |`wait until (n+.001s)`|``|
 |`wait .001s`|``|
-|`t - next Sunday`|`-2 days, 0:00:00`|
+|`t - next Sunday`|`-6 days, 0:00:00`|
 |`2012-12-13-3y.weekday`|`Sunday`|
 |`1st sunday in 2021`|`2021-01-03`|
 |`first sunday in 2021`|`2021-01-03`|
@@ -137,17 +137,17 @@ The following examples are generated based on tests run, so many results will be
 |`last Sunday == next sunday`|`False`|
 |`next Sunday != last sunday`|`True`|
 |`next Sunday == last sunday`|`False`|
-|`seconds since 3000 Apr 10`|`-30872463334.53`|
-|`seconds until 3000 Apr 10`|`30872463334.45`|
+|`seconds since 3000 Apr 10`|`-30826227127.30`|
+|`seconds until 3000 Apr 10`|`30826227127.12`|
 |`2000-10-10 16:00`|`2000-10-10 16:00:00`|
 |`2000-10-10 00:16`|`2000-10-10 00:16:00`|
-|`next Sunday`|`2021-12-19`|
-|`n`|`2021-12-17 19:44:25.868383`|
-|`YD.day`|`16`|
-|`T.weekday`|`Friday`|
-|`T.day`|`17`|
-|`T-10d`|`2021-12-07`|
-|`T-1.5d`|`2021-12-15 12:00:00`|
+|`next Sunday`|`2023-06-11`|
+|`n`|`2023-06-05 23:07:53.607236`|
+|`YD.day`|`4`|
+|`T.weekday`|`Monday`|
+|`T.day`|`5`|
+|`T-10d`|`2023-05-26`|
+|`T-1.5d`|`2023-06-03 12:00:00`|
 |`3M`|`3 months`|
 |`3h+3M`|`3 months, 3:00:00`|
 |`2h2m`|`2:02:00`|
@@ -171,8 +171,8 @@ The following examples are generated based on tests run, so many results will be
 |`1d in minutes`|`1440.00`|
 |`1d in hours`|`24.00`|
 |`1958-05-14 - 1958-05-16`|`-2 days, 0:00:00`|
-|`1957-12-26 22:22:22 - t`|`-23367 days, 22:22:22`|
-|`1957-12-26 - t`|`-23367 days, 0:00:00`|
+|`1957-12-26 22:22:22 - t`|`-23902 days, 22:22:22`|
+|`1957-12-26 - t`|`-23902 days, 0:00:00`|
 |`2014 Jan 13==2014 January 13`|`True`|
 |`12h:00 AM != 12h:00 PM`|`True`|
 |`1610494238.weekday`|`Tuesday`|
@@ -207,15 +207,15 @@ The following examples are generated based on tests run, so many results will be
 |`1-1-1 23h:23`|`0001-01-01 23:23:00`|
 |`1-1-1 23:23m`|`0001-01-01 23:23:00`|
 |`1-1-1 23:23:23`|`0001-01-01 23:23:23`|
-|`seconds until 2021 feb 14 12:00:00`|`-26466270.99`|
+|`seconds until 2021 feb 14 12:00:00`|`-72702485.53`|
 |`2021 feb 14 12:00:00`|`2021-02-14 12:00:00`|
 |`10h30 + 14h`|`1 day, 0:30:00`|
-|`n - 1234`|`18978 days, 22:23:57.238947`|
+|`n - 1234`|`19514 days, 1:47:32.086022`|
 |`1m in hours`|`0.02`|
 |`1 in unix`|`1`|
 |`08h30`|`8:30:00`|
-|`-1d.weekday`|`Thursday`|
+|`-1d.weekday`|`Sunday`|
 |`(t + 180d)-180d == t`|`True`|
 |`(n + 181d)-180d != n`|`True`|
 |`(n + 180d)-180d == n`|`True`|
-|`(T-1d).weekday`|`Thursday`|
+|`(T-1d).weekday`|`Sunday`|
